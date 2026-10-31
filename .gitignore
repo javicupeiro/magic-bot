@@ -1,3 +1,15 @@
 docs/tickets/
 .env
+.env.*
+!.env.example
 .DS_Store
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+dist/
+data/chroma/
+data/conversations/
+tmp/
+data/processed/*.manifest.json
