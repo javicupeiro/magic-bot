@@ -1,0 +1,11 @@
+1. Game Concepts
+100. General
+100.1. A parent rule.
+100.1a A subrule with an example.
+Example: A player chooses
+
+Magic: The Gathering Comprehensive Rules
+2
+two cards, then follows rule
+100.1. This is a continuation of the example.
+100.1bAnother subrule with a glued number.

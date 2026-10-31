@@ -13,3 +13,5 @@ data/chroma/
 data/conversations/
 tmp/
 data/processed/*.manifest.json
+data/processed/*.jsonl
+data/processed/*.report.json

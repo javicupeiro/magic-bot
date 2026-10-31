@@ -1,0 +1,14 @@
+1. Game Concepts
+100. General
+100.1. A parent rule.
+Glossary
+Ability
+Text on an object. See rule 100.1 and section 1, “Game Concepts.”
+Example: The text can continue
+
+Glossary
+on the next page.
+Ability Word
+See Ability. See rule 999.1.
+Credits
+Not part of the glossary.

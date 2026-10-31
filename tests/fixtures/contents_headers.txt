@@ -1,0 +1,27 @@
+Magic: The Gathering Comprehensive Rules
+These rules are effective as of April 17, 2026.
+Introduction
+The subrules include
+704.5n, then 704.5p, for example.
+
+Contents
+1. Game Concepts
+100. General
+2. Parts of a Card
+200. General
+Glossary
+Credits
+
+1. Game Concepts
+100. General
+100.1. A real rule. See rules 100.2 and 100.3.
+Example: An ability says:
+1. This ability triggers only once each turn.
+
+Magic: The Gathering Comprehensive Rules
+4
+1. Game Concepts
+The example continues here. See rule
+100.1.
+100.2. The second real rule.
+100.3. The third real rule.
