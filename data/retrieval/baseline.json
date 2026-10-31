@@ -1,0 +1,614 @@
+{
+  "created_at": "2026-10-31T23:26:40.172557+00:00",
+  "k": 5,
+  "version": "April 17, 2026",
+  "collection": "magic-rules",
+  "collection_count": 4020,
+  "configuration": {
+    "chroma_version": "1.5.5",
+    "embedding": {
+      "dimensions": 1536,
+      "model": "text-embedding-3-small"
+    },
+    "index": {
+      "hnsw": {
+        "ef_construction": 100,
+        "ef_search": 100,
+        "max_neighbors": 16,
+        "space": "cosine"
+      }
+    },
+    "schema": 1,
+    "text_format": "title-body-v1"
+  },
+  "distance_explanation": "Chroma 1.5.5 cosine distance: d = 1 - cosine similarity; lower is closer. Similarity = 1 - d. These values are not probabilities or confidence scores. Exact lookups have no distance or similarity.",
+  "interpretation": "Reviewed sources are a non-exhaustive relevance set; missing sources are observations, not test failures.",
+  "queries": [
+    {
+      "query": "turn phases",
+      "relevant_sources": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:500.1",
+          "reason": "Lists the five turn phases in order and explains their steps."
+        }
+      ],
+      "results": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:702.26",
+          "kind": "rule",
+          "title": "Phasing",
+          "text": "Phasing",
+          "page_start": 153,
+          "page_end": 153,
+          "version": "April 17, 2026",
+          "distance": 0.2615589499473572,
+          "similarity": 0.7384410500526428
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:glossary:Phase",
+          "kind": "glossary",
+          "title": "Phase",
+          "text": "1. A subsection of a turn. See section 5, “Turn Structure.”\n2. A permanent “phases in” when its status changes from phased out to phased in. A permanent “phases\nout” when its status changes from phased in to phased out. See rule 702.26, “Phasing.”",
+          "page_start": 288,
+          "page_end": 288,
+          "version": "April 17, 2026",
+          "distance": 0.34633004665374756,
+          "similarity": 0.6536699533462524
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:500.8",
+          "kind": "rule",
+          "title": "Some effects can add phases to a turn. They do this by adding the phases directly after the",
+          "text": "Some effects can add phases to a turn. They do this by adding the phases directly after the\nspecified phase. If multiple extra phases are created after the same phase, the most recently created\nphase will occur first.",
+          "page_start": 76,
+          "page_end": 76,
+          "version": "April 17, 2026",
+          "distance": 0.37243402004241943,
+          "similarity": 0.6275659799575806
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:702.26a",
+          "kind": "rule",
+          "title": "Phasing is a static ability that modifies the rules of the untap step. During each player’s",
+          "text": "Phasing is a static ability that modifies the rules of the untap step. During each player’s\nuntap step, before the active player untaps permanents, all phased-in permanents with phasing\nthat player controls “phase out.” Simultaneously, all phased-out permanents that had phased out\nunder that player’s control “phase in.”",
+          "page_start": 153,
+          "page_end": 153,
+          "version": "April 17, 2026",
+          "distance": 0.3877294659614563,
+          "similarity": 0.6122705340385437
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:724",
+          "kind": "rule",
+          "title": "Ending Turns and Phases",
+          "text": "Ending Turns and Phases",
+          "page_start": 220,
+          "page_end": 220,
+          "version": "April 17, 2026",
+          "distance": 0.3920210599899292,
+          "similarity": 0.6079789400100708
+        }
+      ],
+      "matched_source_ids": [],
+      "reviewed_source_recall_at_k": 0.0
+    },
+    {
+      "query": "mana",
+      "relevant_sources": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:106.1",
+          "reason": "Defines mana as the resource spent to pay costs."
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:glossary:Mana",
+          "reason": "Defines the term and links to the detailed rules."
+        }
+      ],
+      "results": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:106",
+          "kind": "rule",
+          "title": "Mana",
+          "text": "Mana",
+          "page_start": 12,
+          "page_end": 12,
+          "version": "April 17, 2026",
+          "distance": 0.4819229245185852,
+          "similarity": 0.5180770754814148
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:106.2",
+          "kind": "rule",
+          "title": "Mana is represented bymana symbols(see rule 107.4). Mana symbols also representmana costs",
+          "text": "Mana is represented bymana symbols(see rule 107.4). Mana symbols also representmana costs\n(see rule 202).",
+          "page_start": 12,
+          "page_end": 12,
+          "version": "April 17, 2026",
+          "distance": 0.6008119583129883,
+          "similarity": 0.3991880416870117
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:605",
+          "kind": "rule",
+          "title": "Mana Abilities",
+          "text": "Mana Abilities",
+          "page_start": 99,
+          "page_end": 99,
+          "version": "April 17, 2026",
+          "distance": 0.6106383800506592,
+          "similarity": 0.3893616199493408
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:702.139",
+          "kind": "rule",
+          "title": "Companion",
+          "text": "Companion",
+          "page_start": 179,
+          "page_end": 179,
+          "version": "April 17, 2026",
+          "distance": 0.6161459684371948,
+          "similarity": 0.3838540315628052
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:glossary:Mana",
+          "kind": "glossary",
+          "title": "Mana",
+          "text": "The primary resource in the game. It is spent to pay costs, usually when casting spells and activating\nabilities. See rule 106, “Mana,” rule 107.4, and rule 202, “Mana Cost and Color.”",
+          "page_start": 282,
+          "page_end": 282,
+          "version": "April 17, 2026",
+          "distance": 0.6440441608428955,
+          "similarity": 0.3559558391571045
+        }
+      ],
+      "matched_source_ids": [
+        "mtg:April%2017%2C%202026:glossary:Mana"
+      ],
+      "reviewed_source_recall_at_k": 0.5
+    },
+    {
+      "query": "first strike",
+      "relevant_sources": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:702.7a",
+          "reason": "Defines first strike as a static ability affecting combat damage."
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:702.7b",
+          "reason": "Explains the two combat damage steps."
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:glossary:First%20Strike",
+          "reason": "Short definition linking to rule 702.7."
+        }
+      ],
+      "results": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:702.7",
+          "kind": "rule",
+          "title": "First Strike",
+          "text": "First Strike",
+          "page_start": 146,
+          "page_end": 146,
+          "version": "April 17, 2026",
+          "distance": 0.18324583768844604,
+          "similarity": 0.816754162311554
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:glossary:First%20Strike",
+          "kind": "glossary",
+          "title": "First Strike",
+          "text": "A keyword ability that lets a creature deal its combat damage before other creatures. See rule 702.7, “First\nStrike.”",
+          "page_start": 273,
+          "page_end": 273,
+          "version": "April 17, 2026",
+          "distance": 0.35065704584121704,
+          "similarity": 0.649342954158783
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:702.7a",
+          "kind": "rule",
+          "title": "First strike is a static ability that modifies the rules for the combat damage step. (See rule",
+          "text": "First strike is a static ability that modifies the rules for the combat damage step. (See rule\n510, “Combat Damage Step.”)",
+          "page_start": 146,
+          "page_end": 146,
+          "version": "April 17, 2026",
+          "distance": 0.3875017762184143,
+          "similarity": 0.6124982237815857
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:702.4",
+          "kind": "rule",
+          "title": "Double Strike",
+          "text": "Double Strike",
+          "page_start": 145,
+          "page_end": 145,
+          "version": "April 17, 2026",
+          "distance": 0.40086859464645386,
+          "similarity": 0.5991314053535461
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:702.4a",
+          "kind": "rule",
+          "title": "Double strike is a static ability that modifies the rules for the combat damage step. (See rule",
+          "text": "Double strike is a static ability that modifies the rules for the combat damage step. (See rule\n510, “Combat Damage Step.”)",
+          "page_start": 145,
+          "page_end": 145,
+          "version": "April 17, 2026",
+          "distance": 0.4821861982345581,
+          "similarity": 0.5178138017654419
+        }
+      ],
+      "matched_source_ids": [
+        "mtg:April%2017%2C%202026:glossary:First%20Strike",
+        "mtg:April%2017%2C%202026:rule:702.7a"
+      ],
+      "reviewed_source_recall_at_k": 0.6666666666666666
+    },
+    {
+      "query": "ninjutsu",
+      "relevant_sources": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:702.49a",
+          "reason": "Defines the activated ability, its cost, zone and effect."
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:glossary:Ninjutsu",
+          "reason": "Short keyword definition linking to rule 702.49."
+        }
+      ],
+      "results": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:702.49",
+          "kind": "rule",
+          "title": "Ninjutsu",
+          "text": "Ninjutsu",
+          "page_start": 160,
+          "page_end": 160,
+          "version": "April 17, 2026",
+          "distance": 0.14126205444335938,
+          "similarity": 0.8587379455566406
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:glossary:Ninjutsu",
+          "kind": "glossary",
+          "title": "Ninjutsu",
+          "text": "A keyword ability that lets a creature suddenly enter combat. See rule 702.49, “Ninjutsu.”",
+          "page_start": 286,
+          "page_end": 286,
+          "version": "April 17, 2026",
+          "distance": 0.3893226981163025,
+          "similarity": 0.6106773018836975
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:glossary:Commander%20Ninjutsu",
+          "kind": "glossary",
+          "title": "Commander Ninjutsu",
+          "text": "A variant of the ninjutsu ability. See rule 702.49, “Ninjutsu.”",
+          "page_start": 263,
+          "page_end": 263,
+          "version": "April 17, 2026",
+          "distance": 0.4452289342880249,
+          "similarity": 0.5547710657119751
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:702.49a",
+          "kind": "rule",
+          "title": "Ninjutsu is an activated ability that functions only while the card with ninjutsu is in a",
+          "text": "Ninjutsu is an activated ability that functions only while the card with ninjutsu is in a\nplayer’s hand. “Ninjutsu [cost]” means “[Cost], Reveal this card from your hand, Return an\nunblocked attacking creature you control to its owner’s hand: Put this card onto the battlefield\nfrom your hand tapped and attacking.”",
+          "page_start": 160,
+          "page_end": 160,
+          "version": "April 17, 2026",
+          "distance": 0.45563840866088867,
+          "similarity": 0.5443615913391113
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:702.49d",
+          "kind": "rule",
+          "title": "Commander ninjutsu is a variant of the ninjutsu ability that also functions while the card",
+          "text": "Commander ninjutsu is a variant of the ninjutsu ability that also functions while the card\nwith commander ninjutsu is in the command zone. “Commander ninjutsu [cost]” means “[Cost],\nReveal this card from your hand or from the command zone, Return an unblocked attacking\ncreature you control to its owner’s hand: Put this card onto the battlefield tapped and attacking.”",
+          "page_start": 160,
+          "page_end": 160,
+          "version": "April 17, 2026",
+          "distance": 0.5405682921409607,
+          "similarity": 0.4594317078590393
+        }
+      ],
+      "matched_source_ids": [
+        "mtg:April%2017%2C%202026:glossary:Ninjutsu",
+        "mtg:April%2017%2C%202026:rule:702.49a"
+      ],
+      "reviewed_source_recall_at_k": 1.0
+    },
+    {
+      "query": "Can a creature attack or tap the turn it enters the battlefield?",
+      "relevant_sources": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:302.6",
+          "reason": "States the continuous-control restriction for attacking and tap/untap costs."
+        }
+      ],
+      "results": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:508.1f",
+          "kind": "rule",
+          "title": "The active player taps the chosen creatures. Tapping a creature when it’s declared as an",
+          "text": "The active player taps the chosen creatures. Tapping a creature when it’s declared as an\nattacker isn’t a cost; attacking simply causes creatures to become tapped.",
+          "page_start": 82,
+          "page_end": 82,
+          "version": "April 17, 2026",
+          "distance": 0.3694150447845459,
+          "similarity": 0.6305849552154541
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:302.6",
+          "kind": "rule",
+          "title": "A creature’s activated ability with the tap symbol or the untap symbol in its activation cost can’t",
+          "text": "A creature’s activated ability with the tap symbol or the untap symbol in its activation cost can’t\nbe activated unless the creature has been under its controller’s control continuously since their most\nrecent turn began. A creature can’t attack unless it has been under its controller’s control\ncontinuously since their most recent turn began. This rule is informally called the “summoning\nsickness” rule.",
+          "page_start": 60,
+          "page_end": 60,
+          "version": "April 17, 2026",
+          "distance": 0.36997759342193604,
+          "similarity": 0.630022406578064
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:602.5a",
+          "kind": "rule",
+          "title": "A creature’s activated ability with the tap symbol ({T}) or the untap symbol ({Q}) in its",
+          "text": "A creature’s activated ability with the tap symbol ({T}) or the untap symbol ({Q}) in its\nactivation cost can’t be activated unless the creature has been under its controller’s control since\nthe start of their most recent turn. Ignore this rule for creatures with haste (see rule 702.10).",
+          "page_start": 93,
+          "page_end": 93,
+          "version": "April 17, 2026",
+          "distance": 0.37395191192626953,
+          "similarity": 0.6260480880737305
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:506.4b",
+          "kind": "rule",
+          "title": "Tapping or untapping a creature that’s already been declared as an attacker or blocker",
+          "text": "Tapping or untapping a creature that’s already been declared as an attacker or blocker\ndoesn’t remove it from combat and doesn’t prevent its combat damage.",
+          "page_start": 79,
+          "page_end": 79,
+          "version": "April 17, 2026",
+          "distance": 0.37648212909698486,
+          "similarity": 0.6235178709030151
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:702.10c",
+          "kind": "rule",
+          "title": "If a creature has haste, its controller can activate its activated abilities whose cost includes",
+          "text": "If a creature has haste, its controller can activate its activated abilities whose cost includes\nthe tap symbol or the untap symbol even if that creature hasn’t been controlled by that player\ncontinuously since their most recent turn began. (See rule 302.6.)",
+          "page_start": 146,
+          "page_end": 146,
+          "version": "April 17, 2026",
+          "distance": 0.3876657485961914,
+          "similarity": 0.6123342514038086
+        }
+      ],
+      "matched_source_ids": [
+        "mtg:April%2017%2C%202026:rule:302.6"
+      ],
+      "reviewed_source_recall_at_k": 1.0
+    },
+    {
+      "query": "How are spells and abilities ordered on the stack?",
+      "relevant_sources": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:405.1",
+          "reason": "Explains how spells and abilities enter the stack."
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:405.2",
+          "reason": "Specifies the stack order and that new objects go on top."
+        }
+      ],
+      "results": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:405.2",
+          "kind": "rule",
+          "title": "The stack keeps track of the order that spells and/or abilities were added to it. Each time an",
+          "text": "The stack keeps track of the order that spells and/or abilities were added to it. Each time an\nobject is put on the stack, it’s put on top of all objects already there.",
+          "page_start": 73,
+          "page_end": 73,
+          "version": "April 17, 2026",
+          "distance": 0.24365234375,
+          "similarity": 0.75634765625
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:405.1",
+          "kind": "rule",
+          "title": "When a spell is cast, the physical card is put on the stack (see rule 601.2a). When an ability is",
+          "text": "When a spell is cast, the physical card is put on the stack (see rule 601.2a). When an ability is\nactivated or triggers, it goes on top of the stack without any card associated with it (see rules 602.2a\nand 603.3).",
+          "page_start": 73,
+          "page_end": 73,
+          "version": "April 17, 2026",
+          "distance": 0.27836042642593384,
+          "similarity": 0.7216395735740662
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:608.1",
+          "kind": "rule",
+          "title": "Each time all players pass in succession, the spell or ability on top of the stack resolves. (See rule",
+          "text": "Each time all players pass in succession, the spell or ability on top of the stack resolves. (See rule\n609, “Effects.”)",
+          "page_start": 103,
+          "page_end": 103,
+          "version": "April 17, 2026",
+          "distance": 0.36083823442459106,
+          "similarity": 0.6391617655754089
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:608.2c",
+          "kind": "rule",
+          "title": "The controller of the spell or ability follows its instructions in the order written. However,",
+          "text": "The controller of the spell or ability follows its instructions in the order written. However,\nreplacement effects may modify these actions. In some cases, later text on the card may modify\nthe meaning of earlier text (for example, “Destroy target creature. It can’t be regenerated” or\n“Counter target spell. If that spell is countered this way, put it on top of its owner’s library\ninstead of into its owner’s graveyard.”) Don’t just apply effects step by step without thinking in\nthese cases—read the whole text and apply the rules of English to the text.",
+          "page_start": 104,
+          "page_end": 104,
+          "version": "April 17, 2026",
+          "distance": 0.3608892560005188,
+          "similarity": 0.6391107439994812
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:807.5b",
+          "kind": "rule",
+          "title": "If a player has priority for multiple stacks and casts a spell, activates an ability, or a",
+          "text": "If a player has priority for multiple stacks and casts a spell, activates an ability, or a\ntriggered ability they control triggers, the player must specify which one of those stacks the\nspell or ability is put on. If an object on one of those stacks caused the triggered ability to\ntrigger, the player must put it on that stack. If a resolving spell or ability on one of those stacks\ncauses a player to cast a spell or create a copy of a spell, the new spell must be put on the same\nstack. If a spell or ability targets an object on one of those stacks, it must be put on the same\nstack as its target; it can’t target objects on multiple stacks.",
+          "page_start": 239,
+          "page_end": 239,
+          "version": "April 17, 2026",
+          "distance": 0.3632957339286804,
+          "similarity": 0.6367042660713196
+        }
+      ],
+      "matched_source_ids": [
+        "mtg:April%2017%2C%202026:rule:405.1",
+        "mtg:April%2017%2C%202026:rule:405.2"
+      ],
+      "reviewed_source_recall_at_k": 1.0
+    },
+    {
+      "query": "What are the steps to cast a spell?",
+      "relevant_sources": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:601.2",
+          "reason": "Introduces the ordered casting procedure and its subrules."
+        }
+      ],
+      "results": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:601",
+          "kind": "rule",
+          "title": "Casting Spells",
+          "text": "Casting Spells",
+          "page_start": 89,
+          "page_end": 89,
+          "version": "April 17, 2026",
+          "distance": 0.23467731475830078,
+          "similarity": 0.7653226852416992
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:601.2",
+          "kind": "rule",
+          "title": "To cast a spell is to take it from where it is (usually the hand), put it on the stack, and pay its",
+          "text": "To cast a spell is to take it from where it is (usually the hand), put it on the stack, and pay its\ncosts, so that it will eventually resolve and have its effect. Casting a spell includes proposal of the\nspell (rules 601.2a–d) and determination and payment of costs (rules 601.2f–h). To cast a spell, a\nplayer follows the steps listed below, in order. A player must be legally allowed to cast the spell to\nbegin this process (see rule 601.3). If a player is unable to comply with the requirements of a step\nlisted below while performing that step, the casting of the spell is illegal; the game returns to the\nmoment before the casting of that spell was proposed (see rule 733, “Handling Illegal Actions”).",
+          "page_start": 89,
+          "page_end": 89,
+          "version": "April 17, 2026",
+          "distance": 0.28762298822402954,
+          "similarity": 0.7123770117759705
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:701.5a",
+          "kind": "rule",
+          "title": "To cast a spell is to take it from the zone it’s in (usually the hand), put it on the stack, and",
+          "text": "To cast a spell is to take it from the zone it’s in (usually the hand), put it on the stack, and\npay its costs, so that it will eventually resolve and have its effect. A player may cast a spell if\nthey have priority. See rule 601, “Casting Spells.”",
+          "page_start": 125,
+          "page_end": 125,
+          "version": "April 17, 2026",
+          "distance": 0.34666907787323,
+          "similarity": 0.65333092212677
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:601.2i",
+          "kind": "rule",
+          "title": "Once the steps described in 601.2a–h are completed, effects that modify the characteristics of",
+          "text": "Once the steps described in 601.2a–h are completed, effects that modify the characteristics of\nthe spell as it’s cast are applied, then the spell becomes cast. Any abilities that trigger when a\nspell is cast or put onto the stack trigger at this time. If the spell’s controller had priority before\ncasting it, they get priority.",
+          "page_start": 90,
+          "page_end": 90,
+          "version": "April 17, 2026",
+          "distance": 0.36940908432006836,
+          "similarity": 0.6305909156799316
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:601.2a",
+          "kind": "rule",
+          "title": "To propose the casting of a spell, a player first moves that card (or that copy of a card) from",
+          "text": "To propose the casting of a spell, a player first moves that card (or that copy of a card) from\nwhere it is to the stack. It becomes the topmost object on the stack. It has all the characteristics\nof the card (or the copy of a card) associated with it, and that player becomes its controller. Any\ncontinuous effects that modify the characteristics of the spell as you start casting it begin as it is\nput on the stack (see rule 611.2f). Any one-shot effects that cause the spell to gain abilities as\nyou cast it apply as it is put on the stack (see rule 610.5). The spell remains on the stack until it\nresolves, it’s countered, or a rule or effect moves it elsewhere.",
+          "page_start": 89,
+          "page_end": 89,
+          "version": "April 17, 2026",
+          "distance": 0.39038193225860596,
+          "similarity": 0.609618067741394
+        }
+      ],
+      "matched_source_ids": [
+        "mtg:April%2017%2C%202026:rule:601.2"
+      ],
+      "reviewed_source_recall_at_k": 1.0
+    },
+    {
+      "query": "What happens when a creature takes lethal damage?",
+      "relevant_sources": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:704.5g",
+          "reason": "Destruction from lethal marked damage on a creature with positive toughness."
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:glossary:Lethal%20Damage",
+          "reason": "Defines the amount and points to detailed rules."
+        }
+      ],
+      "results": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:704.5g",
+          "kind": "rule",
+          "title": "If a creature has toughness greater than 0, it has damage marked on it, and the total damage",
+          "text": "If a creature has toughness greater than 0, it has damage marked on it, and the total damage\nmarked on it is greater than or equal to its toughness, that creature has been dealt lethal damage\nand is destroyed. Regeneration can replace this event.",
+          "page_start": 194,
+          "page_end": 194,
+          "version": "April 17, 2026",
+          "distance": 0.3512269854545593,
+          "similarity": 0.6487730145454407
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:302.7",
+          "kind": "rule",
+          "title": "Damage dealt to a creature by a source with neither wither nor infect is marked on that creature",
+          "text": "Damage dealt to a creature by a source with neither wither nor infect is marked on that creature\n(see rule 120.3). If the total damage marked on that creature is greater than or equal to its toughness,\nthat creature has been dealt lethal damage and is destroyed as a state-based action (see rule 704). All\ndamage marked on a creature is removed when it regenerates (see rule 701.19, “Regenerate”) and\nduring the cleanup step (see rule 514.2).",
+          "page_start": 60,
+          "page_end": 60,
+          "version": "April 17, 2026",
+          "distance": 0.3519941568374634,
+          "similarity": 0.6480058431625366
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:glossary:Lethal%20Damage",
+          "kind": "glossary",
+          "title": "Lethal Damage",
+          "text": "An amount of damage greater than or equal to a creature’s toughness. See rules 120.4a, 120.6, 510.1, and\n704.5g.",
+          "page_start": 280,
+          "page_end": 280,
+          "version": "April 17, 2026",
+          "distance": 0.35340094566345215,
+          "similarity": 0.6465990543365479
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:120.6",
+          "kind": "rule",
+          "title": "Damage marked on a creature remains until the cleanup step, even if that permanent stops being",
+          "text": "Damage marked on a creature remains until the cleanup step, even if that permanent stops being\na creature. If the total damage marked on a creature is greater than or equal to its toughness, that\ncreature has been dealtlethal damageand is destroyed as a state-based action (see rule 704). All\ndamage marked on a permanent is removed when it regenerates (see rule 701.19, “Regenerate”) and\nduring the cleanup step (see rule 514.2).",
+          "page_start": 38,
+          "page_end": 39,
+          "version": "April 17, 2026",
+          "distance": 0.40741533041000366,
+          "similarity": 0.5925846695899963
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:704.5h",
+          "kind": "rule",
+          "title": "If a creature has toughness greater than 0, and it’s been dealt damage by a source with",
+          "text": "If a creature has toughness greater than 0, and it’s been dealt damage by a source with\ndeathtouch since the last time state-based actions were checked, that creature is destroyed.\nRegeneration can replace this event.",
+          "page_start": 194,
+          "page_end": 194,
+          "version": "April 17, 2026",
+          "distance": 0.44265496730804443,
+          "similarity": 0.5573450326919556
+        }
+      ],
+      "matched_source_ids": [
+        "mtg:April%2017%2C%202026:glossary:Lethal%20Damage",
+        "mtg:April%2017%2C%202026:rule:704.5g"
+      ],
+      "reviewed_source_recall_at_k": 1.0
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "version": "April 17, 2026",
+  "review": "Sources inspected against the locally extracted and parsed English Comprehensive Rules, physical PDF pages; this is a non-exhaustive set, selected before running the baseline.",
+  "queries": [
+    {
+      "query": "turn phases",
+      "relevant_sources": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:500.1",
+          "reason": "Lists the five turn phases in order and explains their steps."
+        }
+      ]
+    },
+    {
+      "query": "mana",
+      "relevant_sources": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:106.1",
+          "reason": "Defines mana as the resource spent to pay costs."
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:glossary:Mana",
+          "reason": "Defines the term and links to the detailed rules."
+        }
+      ]
+    },
+    {
+      "query": "first strike",
+      "relevant_sources": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:702.7a",
+          "reason": "Defines first strike as a static ability affecting combat damage."
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:702.7b",
+          "reason": "Explains the two combat damage steps."
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:glossary:First%20Strike",
+          "reason": "Short definition linking to rule 702.7."
+        }
+      ]
+    },
+    {
+      "query": "ninjutsu",
+      "relevant_sources": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:702.49a",
+          "reason": "Defines the activated ability, its cost, zone and effect."
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:glossary:Ninjutsu",
+          "reason": "Short keyword definition linking to rule 702.49."
+        }
+      ]
+    },
+    {
+      "query": "Can a creature attack or tap the turn it enters the battlefield?",
+      "relevant_sources": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:302.6",
+          "reason": "States the continuous-control restriction for attacking and tap/untap costs."
+        }
+      ]
+    },
+    {
+      "query": "How are spells and abilities ordered on the stack?",
+      "relevant_sources": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:405.1",
+          "reason": "Explains how spells and abilities enter the stack."
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:405.2",
+          "reason": "Specifies the stack order and that new objects go on top."
+        }
+      ]
+    },
+    {
+      "query": "What are the steps to cast a spell?",
+      "relevant_sources": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:601.2",
+          "reason": "Introduces the ordered casting procedure and its subrules."
+        }
+      ]
+    },
+    {
+      "query": "What happens when a creature takes lethal damage?",
+      "relevant_sources": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:704.5g",
+          "reason": "Destruction from lethal marked damage on a creature with positive toughness."
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:glossary:Lethal%20Damage",
+          "reason": "Defines the amount and points to detailed rules."
+        }
+      ]
+    }
+  ]
+}
