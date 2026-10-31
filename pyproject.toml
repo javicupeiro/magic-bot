@@ -3,11 +3,17 @@ name = "magic-bot"
 version = "0.1.0"
 description = "Local tools for working with Magic: The Gathering rules"
 requires-python = ">=3.12"
-dependencies = ["pypdf>=6,<7"]
+dependencies = [
+    "chromadb==1.5.5",
+    "openai>=2,<3",
+    "pypdf>=6,<7",
+    "python-dotenv>=1,<2",
+]
 
 [project.scripts]
 pdf-to-text = "backend.ingestion.pdf_to_text:main"
 parse-rules = "backend.ingestion.parse_rules:main"
+ingest-rules = "backend.ingestion.ingest:main"
 
 [build-system]
 requires = ["hatchling"]
