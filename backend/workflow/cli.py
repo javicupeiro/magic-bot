@@ -42,7 +42,9 @@ from openai import OpenAIError
 from pydantic import BaseModel
 
 from backend.cards.mtg_api import MtgApiClient
-from backend.retrieval.retrieval import Retriever, SearchResult
+from backend.ingestion.ingest import DEFAULT_INPUT
+from backend.retrieval.hybrid import DEFAULT_CANDIDATES
+from backend.retrieval.retrieval import DEFAULT_METHOD, METHODS, Retriever, SearchResult
 from backend.workflow.graph import QuestionWorkflow
 
 
@@ -89,6 +91,9 @@ def main():
     parser.add_argument("--json", action="store_true",
                         help="Print the entire structured state instead of readable output")
     parser.add_argument("--events", action="store_true", help="Stream native node updates, including card tools")
+    parser.add_argument("--method", choices=METHODS, default=DEFAULT_METHOD)
+    parser.add_argument("--source", type=Path, default=DEFAULT_INPUT, help="Matching JSONL for BM25")
+    parser.add_argument("--candidate-limit", type=int, default=DEFAULT_CANDIDATES)
     args = parser.parse_args()
     try:
         # 2. Prepare a retrieval proxy without opening Chroma yet. Routing happens
@@ -97,7 +102,7 @@ def main():
             """Create and reuse one real Retriever on the first rules operation.
 
             This CLI-local adapter captures the parsed database options. It offers
-            the two operations required by workflow nodes: semantic search and
+            the two operations required by workflow nodes: configured search and
             exact rule lookup. Creating the adapter itself performs no retrieval.
             """
             instance = None
@@ -105,11 +110,13 @@ def main():
             def _get(self):
                 """Open the configured index once; let index errors reach main()."""
                 if self.instance is None:
-                    self.instance = Retriever(args.db, args.collection)
+                    self.instance = Retriever(
+                        args.db, args.collection, method=args.method,
+                        source_path=args.source, candidate_limit=args.candidate_limit)
                 return self.instance
 
             def search(self, *values, **options):
-                """Forward semantic search, preserving query, kind and edition filters."""
+                """Forward the configured retrieval method, preserving query, kind and edition filters."""
                 return self._get().search(*values, **options)
 
             def get(self, *values, **options):

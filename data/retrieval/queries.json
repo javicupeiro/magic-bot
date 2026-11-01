@@ -1,6 +1,6 @@
 {
   "version": "April 17, 2026",
-  "review": "Sources inspected against the locally extracted and parsed English Comprehensive Rules, physical PDF pages; this is a non-exhaustive set, selected before running the baseline.",
+  "review": "Sources inspected against the locally extracted and parsed English Comprehensive Rules, physical PDF pages; this is a non-exhaustive set, selected before running the baseline. Four additional lexical/paraphrase/bilingual cases were judged before the paired comparison; Spanish queries are sent directly to retrieval, without workflow translation.",
   "queries": [
     {
       "query": "turn phases",
@@ -9,7 +9,9 @@
           "id": "mtg:April%2017%2C%202026:rule:500.1",
           "reason": "Lists the five turn phases in order and explains their steps."
         }
-      ]
+      ],
+      "language": "en",
+      "category": "exact-term"
     },
     {
       "query": "mana",
@@ -22,7 +24,9 @@
           "id": "mtg:April%2017%2C%202026:glossary:Mana",
           "reason": "Defines the term and links to the detailed rules."
         }
-      ]
+      ],
+      "language": "en",
+      "category": "exact-term"
     },
     {
       "query": "first strike",
@@ -39,7 +43,9 @@
           "id": "mtg:April%2017%2C%202026:glossary:First%20Strike",
           "reason": "Short definition linking to rule 702.7."
         }
-      ]
+      ],
+      "language": "en",
+      "category": "exact-term"
     },
     {
       "query": "ninjutsu",
@@ -52,7 +58,9 @@
           "id": "mtg:April%2017%2C%202026:glossary:Ninjutsu",
           "reason": "Short keyword definition linking to rule 702.49."
         }
-      ]
+      ],
+      "language": "en",
+      "category": "exact-term"
     },
     {
       "query": "Can a creature attack or tap the turn it enters the battlefield?",
@@ -61,7 +69,9 @@
           "id": "mtg:April%2017%2C%202026:rule:302.6",
           "reason": "States the continuous-control restriction for attacking and tap/untap costs."
         }
-      ]
+      ],
+      "language": "en",
+      "category": "paraphrase"
     },
     {
       "query": "How are spells and abilities ordered on the stack?",
@@ -74,7 +84,9 @@
           "id": "mtg:April%2017%2C%202026:rule:405.2",
           "reason": "Specifies the stack order and that new objects go on top."
         }
-      ]
+      ],
+      "language": "en",
+      "category": "paraphrase"
     },
     {
       "query": "What are the steps to cast a spell?",
@@ -83,7 +95,9 @@
           "id": "mtg:April%2017%2C%202026:rule:601.2",
           "reason": "Introduces the ordered casting procedure and its subrules."
         }
-      ]
+      ],
+      "language": "en",
+      "category": "paraphrase"
     },
     {
       "query": "What happens when a creature takes lethal damage?",
@@ -96,7 +110,66 @@
           "id": "mtg:April%2017%2C%202026:glossary:Lethal%20Damage",
           "reason": "Defines the amount and points to detailed rules."
         }
+      ],
+      "language": "en",
+      "category": "paraphrase"
+    },
+    {
+      "query": "¿Cuáles son las fases de un turno?",
+      "language": "es",
+      "category": "bilingual",
+      "relevant_sources": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:500.1",
+          "reason": "Lists the five turn phases in order and explains their steps."
+        }
+      ]
+    },
+    {
+      "query": "¿Qué es dañar primero y cómo cambia el daño de combate?",
+      "language": "es",
+      "category": "bilingual",
+      "relevant_sources": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:702.7a",
+          "reason": "Defines first strike as a static ability affecting combat damage."
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:rule:702.7b",
+          "reason": "Explains the two combat damage steps."
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:glossary:First%20Strike",
+          "reason": "Short definition linking to rule 702.7."
+        }
+      ]
+    },
+    {
+      "query": "May my newly arrived creature swing or use its tap ability immediately?",
+      "language": "en",
+      "category": "paraphrase",
+      "relevant_sources": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:302.6",
+          "reason": "States the continuous-control restriction for attacking and tap/untap costs."
+        }
+      ]
+    },
+    {
+      "query": "What does rule 702.49a say about ninjutsu?",
+      "language": "en",
+      "category": "exact-rule-term",
+      "relevant_sources": [
+        {
+          "id": "mtg:April%2017%2C%202026:rule:702.49a",
+          "reason": "Defines the activated ability, its cost, zone and effect."
+        },
+        {
+          "id": "mtg:April%2017%2C%202026:glossary:Ninjutsu",
+          "reason": "Short keyword definition linking to rule 702.49."
+        }
       ]
     }
-  ]
+  ],
+  "decision_policy": "Promote hybrid only if mean reviewed-source recall@5 improves by at least 0.05, no case regresses, mean serialized context grows by at most 25%, and mean end-to-end search latency grows by at most 25%. Single-run timings are exploratory."
 }

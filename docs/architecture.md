@@ -7,7 +7,7 @@ model; LangGraph decides when those operations run.
 ## Code map
 
 - `backend/ingestion/`: PDF extraction, structured documents, embeddings and ingestion.
-- `backend/retrieval/`: similarity search and exact document lookup in Chroma.
+- `backend/retrieval/`: vector/hybrid ranking and exact document lookup in Chroma.
 - `backend/generation/`: a shared LangChain model wrapper and grounded answer contracts.
 - `backend/cards/mtg_api.py`: live HTTP, bounded pagination and errors.
 - `backend/cards/filters.py`: remote parameters and local comparison semantics.
@@ -38,6 +38,10 @@ flowchart LR
 
 `Document` is the ingestion contract. Chroma retains original text and metadata;
 `SearchResult` carries that evidence back out, including parsed references.
+Optional hybrid search also builds BM25 in memory from the matching JSONL,
+verifies its source hashes against Chroma, and fuses vector/lexical ranks with RRF.
+Vector remains the measured default; the same Retriever contract serves both
+modes. See the [data flow and real comparison](ingestion-and-retrieval.md#hybrid-retrieval-and-the-measured-default).
 Expansion uses these target IDs directly. It does not reinterpret references
 with another regular expression at query time. Unresolved links remain available
 for inspection but are not followed.
@@ -138,3 +142,5 @@ There are currently no persistent sessions, token dashboard or Langfuse traces.
 
 References: [LangGraph workflows](https://docs.langchain.com/oss/python/langgraph/workflows-agents),
 [ChatOpenAI integration](https://docs.langchain.com/oss/python/integrations/chat/openai).
+
+The [retrieval parameter sweep](retrieval-parameter-sweep.md) measures result counts and candidate budgets without changing graph nodes or parsing boundaries. It records retrieval coverage and raw context costs separately from generated-answer quality.

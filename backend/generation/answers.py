@@ -12,7 +12,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from backend.generation.llm import LLM, StructuredOutputError
 from backend.common.prompts import PROMPTS, load_prompt
-from backend.retrieval.retrieval import Retriever, SearchResult
+from backend.ingestion.ingest import DEFAULT_INPUT
+from backend.retrieval.hybrid import DEFAULT_CANDIDATES
+from backend.retrieval.retrieval import DEFAULT_METHOD, METHODS, Retriever, SearchResult
 
 
 class StructuredModel(BaseModel):
@@ -201,10 +203,14 @@ def main() -> None:
     parser.add_argument("--version", help="Exact rulebook edition")
     parser.add_argument("--db", type=Path, default=Path("data/chroma"))
     parser.add_argument("--collection", default="magic-rules")
+    parser.add_argument("--method", choices=METHODS, default=DEFAULT_METHOD)
+    parser.add_argument("--source", type=Path, default=DEFAULT_INPUT, help="Matching JSONL for BM25")
+    parser.add_argument("--candidate-limit", type=int, default=DEFAULT_CANDIDATES)
     args = parser.parse_args()
     try:
-        result = AnswerService(Retriever(args.db, args.collection)).answer(
-            args.question, k=args.k, version=args.version)
+        retriever = Retriever(args.db, args.collection, method=args.method,
+                              source_path=args.source, candidate_limit=args.candidate_limit)
+        result = AnswerService(retriever).answer(args.question, k=args.k, version=args.version)
     except OpenAIError as exc:
         parser.exit(1, f"OpenAI request failed ({type(exc).__name__})\n")
     except (OSError, ValueError, chromadb.errors.ChromaError) as exc:

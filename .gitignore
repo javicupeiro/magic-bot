@@ -15,3 +15,5 @@ tmp/
 data/processed/*.manifest.json
 data/processed/*.jsonl
 data/processed/*.report.json
+
+/docs/development.md

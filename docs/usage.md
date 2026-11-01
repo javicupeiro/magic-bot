@@ -8,7 +8,7 @@ otherwise create one from `.env.example`. Never put keys in command arguments.
 - `pdf-to-text`: extraction only, no LLM.
 - `parse-rules`: TXT to structured rules, sections and glossary.
 - `ingest-rules`: cached embeddings and Chroma ingestion.
-- `search-rules`: semantic retrieval or exact lookup, no generated answer.
+- `search-rules`: vector/hybrid retrieval or exact lookup, no generated answer.
 - `benchmark-retrieval`: measure retrieval against reviewed source IDs.
 - `answer-rules`: simple bilingual RAG baseline without cards or graph routing.
 - `card-catalogue`: direct HTTP client without a model.
@@ -31,7 +31,12 @@ uv run --locked magic-chat 'Can I use ninjutsu after first-strike damage?' -k 3
 
 Rules need the ingested index and embedding/model credentials. A card-only route
 does not open Chroma. Options include `--db`, `--collection`, `--version`, `-k`,
-`--max-calls`, `--max-pages` and `--context-budget`.
+`--max-calls`, `--max-pages`, `--context-budget`, `--method vector|hybrid`,
+`--source` (matching JSONL) and `--candidate-limit` (default 20 per hybrid branch).
+Vector remains the default after the measured comparison.
+`search-rules` and `answer-rules` accept the same retrieval options;
+`benchmark-retrieval --method both --output data/retrieval/local-comparison.json`
+saves a paired comparison with source changes, recall, latency and context size.
 
 Defaults: five semantic hits per query and kind, four tool calls, three HTTP pages
 per lookup, and 24,000 serialized evidence characters. Rejected tool requests count
@@ -84,3 +89,22 @@ turns, despite the `chat` command names.
 
 See [architecture](architecture.md), [ingestion](ingestion-and-retrieval.md),
 [catalogue semantics](catalogue.md) and [prompt conventions](prompts.md).
+
+
+## Retrieval parameter sweep
+
+```sh
+uv run --locked benchmark-retrieval --sweep --repeats 3 --output data/retrieval/parameter-sweep-local.json
+```
+
+The fixed sweep compares final k=5,8,10,20 for vector and hybrid, with hybrid
+candidate limits 20,40,80 per branch (16 configurations). In sweep mode these
+values replace `-k`, `--method` and `--candidate-limit`. Three rounds make 576
+real embedding/search calls for the 12-case bank. `--repeats` changes the number
+of rounds; the default is three. No query embedding cache is introduced.
+
+The report retains full first-round sources/candidates, all repeated result IDs,
+per-query metrics, randomized configuration order (seed 42), and aggregate recall,
+MRR, hit/full-recall rates, latency percentiles and context sizes. Lexical corpus
+validation/build is measured separately. This is a retrieval experiment, not a
+measurement of generated answer quality or workflow prompt size.

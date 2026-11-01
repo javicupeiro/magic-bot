@@ -132,7 +132,7 @@ capped. `--kind` accepts `rule`, `section` or `glossary`. An exact `--version`
 filter selects an edition, for example `--version 'April 17, 2026'`.
 
 JSON output includes ID, kind, title, full body, physical PDF page range, edition,
-distance, similarity and parsed references. An unknown exact ID/rule or unmatched filter returns an
+distance, similarity, parsed references and retrieval method/rank provenance. An unknown exact ID/rule or unmatched filter returns an
 empty results list. `--rule` looks up the exact `rule_number` metadata, so `702.49a`
 is distinct from its parent `702.49`. It returns matches across indexed editions
 unless `--version` is supplied. `--id` looks up the complete edition-qualified ID
@@ -147,13 +147,14 @@ confidence score. The formula is documented in the
 [Chroma 1.5.5 distance implementation](https://github.com/chroma-core/chroma/blob/1.5.5/rust/distance/src/types.rs).
 The integration fixture checks aligned, perpendicular and opposite vectors
 through the public retrieval API, expecting distances 0, 1 and 2. Chroma handles
-ranking; retrieval adds no threshold, reranking or answer generation. HNSW search
+vector ranking; vector mode adds no threshold, reranking or answer generation. HNSW search
 is approximate, and lexical ambiguity or short heading documents can outrank
 useful explanatory rules.
 
-[data/retrieval/queries.json](../data/retrieval/queries.json) contains eight English
+[data/retrieval/queries.json](../data/retrieval/queries.json) contains twelve English/Spanish
 queries and a non-exhaustive set of manually reviewed relevant source IDs with
-reasons, selected from the April 17, 2026 edition before the initial run.
+reasons from the April 17, 2026 edition. The original eight cases preceded the
+initial baseline; four additional cases preceded the hybrid experiment.
 [data/retrieval/baseline.json](../data/retrieval/baseline.json) saves the initial top-5
 results, including full text, pages, distances, configuration, collection size,
 timestamp and reviewed-source recall per query. Generate a separate comparison:
@@ -183,3 +184,137 @@ reviewed sources; it runs through `benchmark-retrieval` or
 `python -m evals.retrieval`. It uses the backend API and is separate from the
 application runtime. Automated correctness checks live in `tests/`; evaluation
 queries and saved results live in `data/retrieval/`.
+
+
+## Hybrid retrieval and the measured default
+
+`Retriever(method="hybrid", source_path=Path("data/processed/MagicCompRules_20260417.jsonl"))`
+selects the optional method for every caller, including the existing workflow.
+An individual `search(..., method="vector")` can override it. The default remains
+`vector`, based on the comparison below. `get()` and `rule()` always use exact
+Chroma lookups; even with hybrid configured they need neither JSONL nor embeddings.
+
+```sh
+uv run --locked search-rules 'turn phases' --method vector
+uv run --locked search-rules 'turn phases' --method hybrid
+uv run --locked search-rules 'What does rule 702.49a say about ninjutsu?' --method hybrid
+uv run --locked search-rules --rule 702.49a --method hybrid
+uv run --locked magic-chat '¿Qué es dañar primero?' --method hybrid --json
+uv run --locked answer-rules 'What is ninjutsu?' --method hybrid
+uv run --locked benchmark-retrieval --method both --output data/retrieval/local-comparison.json
+```
+
+`--source` selects the parsed JSONL and `--candidate-limit` selects the branch
+candidate budget (default 20). These options are shared by the search, benchmark,
+workflow and baseline-answer commands. A custom collection needs its corresponding
+JSONL. Partial ingestion cannot be compared against a complete JSONL: finish
+indexing first, or supply the exact matching corpus. Nothing is reindexed by search.
+
+Data flows as follows:
+
+1. The first hybrid query reads JSONL through ingestion's existing validator.
+   `_lexical_index()` compares the complete ID sets, editions and `source_hash`
+   values against Chroma, including metadata such as pages and references.
+   A mismatch fails before requesting a query embedding. With `--version`, only
+   that edition is compared/indexed; otherwise the entire corpus must match.
+2. `BM25Index` in `backend/retrieval/hybrid.py` creates in-memory postings and
+   lengths from the same title/body input plus the rule number. Unicode words are
+   case-folded and dotted identifiers such as `702.49a` stay whole. It applies
+   BM25 with k1=1.5, b=0.75 and positive log IDF, using the selected corpus for
+   document frequencies. There is no stemming, stop-word removal or translation.
+3. The vector branch embeds the query using the saved index configuration.
+   Both branches filter kind/edition before selecting up to
+   `max(k, candidate_limit)` hits. BM25 excludes documents without matching terms;
+   tied lexical scores sort by ID. Chroma retains its approximate vector order.
+4. `reciprocal_rank_fusion()` deduplicates IDs, adds one contribution per method
+   and sorts the union. Positions start at **1**; each contribution is
+   `1 / (60 + position)`. Equal fusion scores sort by ID. Only the top k survive.
+5. Source content always comes back from Chroma as `SearchResult`. A lexical-only
+   winner has null distance/similarity; other hits keep their vector distance.
+   Hybrid order follows `fusion_score`, not distance. `ranks` records positions in
+   each branch and `retrieval_method` records the selected mode. The existing
+   workflow then deduplicates, bounds context and follows exact references as usual.
+
+For example, vector `[A, B]` and BM25 `[B, C]` give B
+`1/62 + 1/61 = 0.03252`, A `1/61 = 0.01639`, and C
+`1/62 = 0.01613`. The fused order is `[B, A, C]`. No raw BM25 score is added
+to cosine similarity. RRF is agreement between rankings, not confidence.
+
+The lexical index is cached in memory per edition in one Retriever; there is no
+second database, disk index or new dependency. Do not ingest/rebuild concurrently
+with a live Retriever: reopen it after source/index changes. `last_search` retains
+all candidate IDs, branch positions and fusion scores for the most recent search,
+including candidates discarded from top k. Search CLI output and every benchmark
+query save this diagnostic data; workflow sources retain their own ranks.
+
+### Paired experiment
+
+The twelve judgments in `data/retrieval/queries.json` were defined before the
+experiment. They retain the original eight questions and add a Spanish turn-phase
+question, a Spanish first-strike question, a summoning-sickness paraphrase and a
+query mentioning `702.49a`. The Spanish questions form pairs with existing English
+cases and go directly to retrieval. The workflow normally normalizes them to
+English first, so these direct retrieval failures are not workflow answer scores.
+
+The predefined promotion policy requires at least +0.05 mean reviewed-source
+recall@5, no individual regression, at most 25% mean serialized-context growth,
+and at most 25% mean search-latency growth. This is a small exploratory bank, not
+a comprehensive relevance judgment or a statistical performance study.
+
+`data/retrieval/hybrid-comparison.json` saves the live paired run over all **4,020**
+records of the April 17, 2026 edition, using `text-embedding-3-small`, 1,536
+dimensions, k=5, 20 candidates per hybrid branch and RRF constant 60. It includes
+full sources, reviewed matches, configuration, branch ranks, all candidates and
+added/removed IDs per query. `baseline.json` remains the original eight-case run.
+
+The saved run measured mean search latency of **258.12 ms vector / 259.16 ms
+hybrid**, and mean serialized context size of **3,588.58 / 3,715.17 characters**
+(+3.53%). Mean title/body size was 1,499.75 / 1,465.08 characters. The first query
+took 483.90 / 438.50 ms respectively; only the hybrid value includes lexical setup.
+These times are wall-clock observations of this run, not a speed guarantee.
+
+The mean reviewed-source recall is **0.76389 for both methods**. Hybrid recovers
+`rule:500.1` for `turn phases` (0 → 1), but removes `glossary:Mana` for `mana`
+(0.5 → 0), and removes `rule:405.1` for the stack-order question (1 → 0.5).
+The JSON report lists every changed source and rank, including changes where
+reviewed recall stays the same. Some replacement sources may be relevant despite
+not being in the reviewed set; those are not automatically false positives.
+
+Both methods still miss `rule:106.1` for `mana`, `rule:702.7b` for `first strike`,
+and all three reviewed sources for the Spanish first-strike question. In that
+Spanish case lexical overlap can even promote irrelevant symbols such as Y.
+BM25 over an English corpus does not supply translation or general typo tolerance.
+The casting question retains its reviewed source but hybrid adds long rules,
+increasing that question's context substantially. Context limits still matter.
+
+**Decision: retain vector as default and preserve hybrid as an explicit option.**
+Equal mean recall and two regressions already fail the promotion policy, regardless
+of timing. Latency includes embedding HTTP and network jitter; vector runs first,
+so connection/provider warmup makes a single timing comparison inconclusive.
+The first hybrid query also includes JSONL validation and BM25 construction.
+Context characters count serialized SearchResult arrays (including provenance),
+not tokens or the workflow's expanded, budgeted prompt. The report additionally
+records title/body character counts. No generated-answer quality was evaluated.
+
+
+### Varying result counts and candidate budgets
+
+The follow-up [parameter sweep](retrieval-parameter-sweep.md) tests k=5,8,10,20
+and hybrid candidate limits 20,40,80, with three rounds per configuration (576
+fresh embedding/search calls). Saved measurements are in
+[data/retrieval/parameter-sweep.json](../data/retrieval/parameter-sweep.json), with
+a [portable interactive comparison](../data/retrieval/parameter-sweep.html).
+
+The original k=5 result is limited to that configuration: vector recall rises
+from 76.39% to 94.44% at k=20, while mean serialized context grows roughly fourfold.
+Hybrid k=10/c20 reaches 87.50% with roughly half the context of vector k=20.
+Increasing hybrid candidates can reduce recall: at k=10, c20/c40/c80 yield
+87.50%/79.17%/83.33%. More branch candidates can gain a second RRF contribution
+and displace a relevant vector-only hit. The guide records exact examples,
+per-query recall, hit/full-recall rates, MRR, latency percentiles and context size.
+
+This sweep excludes separately measured lexical setup from search latency and
+shuffles configuration order each round. Timings therefore use a different
+protocol from the original paired run. Defaults remain unchanged. No generated
+answers or workflow budget survival were evaluated; all context sizes are raw
+retrieval arrays rather than expanded prompts.
