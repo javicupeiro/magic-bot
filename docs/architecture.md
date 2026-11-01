@@ -17,7 +17,7 @@ model; LangGraph decides when those operations run.
 - `backend/workflow/`: routing, rule nodes, persistent conversations, context selection and CLI.
 - `backend/common/prompts.py`: the reusable loader and active prompt versions.
 - `backend/prompts/`: versioned Markdown instructions for all model steps.
-- `tests/`: deterministic behavior checks; `evals/`: retrieval quality measurements.
+- `tests/`: deterministic behavior checks.
 
 The future UI will live in `frontend/`, separate from `backend/`. It does not exist
 yet. We keep the current functional packages rather than introducing a second

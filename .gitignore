@@ -28,9 +28,4 @@ docs/answer-review-ablation-checkpoint.md
 docs/images/answer-review/
 docs/images/answer-review-v2/
 tests/test_answer_review_eval.py
-
-# Experiment runners. The retrieval scripts already in git stay tracked.
-evals/*
-!evals/__init__.py
-!evals/retrieval.py
-!evals/plot_retrieval.py
+evals/

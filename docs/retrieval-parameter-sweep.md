@@ -227,13 +227,4 @@ reglamento ni a consultas reales de usuarios.
 
 Las cinco imágenes PNG están en `docs/images/retrieval/` y se insertan con rutas
 relativas para que el informe se pueda revisar en un visor Markdown normal.
-Se generan directamente desde el JSON guardado, sin nuevas llamadas a modelos:
-
-```sh
-uv run --locked --with matplotlib python -m evals.plot_retrieval
-```
-
-El script `evals/plot_retrieval.py` también acepta `--input` y `--output`.
-Matplotlib se proporciona solo al comando de documentación; no se añade a las
-dependencias de la aplicación. Para graficar otro experimento, primero ejecuta
-el sweep y después selecciona su JSON mediante `--input`.
+Salen del JSON guardado, sin nuevas llamadas a modelos.

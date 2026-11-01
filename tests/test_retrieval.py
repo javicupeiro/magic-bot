@@ -12,7 +12,7 @@ from backend.ingestion.embeddings import EmbeddingConfig
 from backend.ingestion.ingest import ingest
 from backend.retrieval.hybrid import BM25Index, reciprocal_rank_fusion, tokenize
 from backend.retrieval.retrieval import Retriever
-from evals.retrieval import benchmark, sweep
+from backend.retrieval.benchmark import benchmark, sweep
 
 
 class KnownEmbeddings:

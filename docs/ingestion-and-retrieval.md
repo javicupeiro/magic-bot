@@ -178,12 +178,10 @@ in the baseline for future comparison.
 
 Retrieval code lives in `backend/retrieval/retrieval.py`, which contains the
 reusable API and CLI together, following the ingestion module pattern. Import
-`Retriever` from `backend.retrieval.retrieval`.
-`evals/retrieval.py` is a development tool for measuring retrieval quality against
-reviewed sources; it runs through `benchmark-retrieval` or
-`python -m evals.retrieval`. It uses the backend API and is separate from the
-application runtime. Automated correctness checks live in `tests/`; evaluation
-queries and saved results live in `data/retrieval/`.
+`Retriever` from `backend.retrieval.retrieval`. `benchmark-retrieval` measures
+reviewed-source coverage through `backend/retrieval/benchmark.py` and does not
+generate answers. Automated correctness checks live in `tests/`; reviewed queries
+and saved results live in `data/retrieval/`.
 
 
 ## Hybrid retrieval and the measured default
