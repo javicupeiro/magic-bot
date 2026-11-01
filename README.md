@@ -191,3 +191,76 @@ reviewed sources; it runs through `benchmark-retrieval` or
 `python -m evals.retrieval`. It uses the backend API and is separate from the
 application runtime. Automated correctness checks live in `tests/`; evaluation
 queries and saved results live in `data/retrieval/`.
+
+Generate a grounded answer in English or Spanish:
+
+```sh
+uv run --locked answer-rules '¿Cuáles son las fases de un turno?' --version 'April 17, 2026'
+uv run --locked answer-rules 'What are the phases of a turn?'
+uv run --locked answer-rules '¿Cuándo se vacía el maná no usado?'
+uv run --locked answer-rules 'When does unused mana empty?'
+uv run --locked answer-rules '¿Qué es ninjutsu?'
+uv run --locked answer-rules 'What is ninjutsu?'
+uv run --locked answer-rules '¿Cuál es la capital de Francia?'
+```
+
+`answer-rules` (also `python -m backend.generation.answers`) needs an ingested index and
+`OPENAI_API_KEY`. Both normalization and generation use the Responses API with
+structured Pydantic outputs, following the
+[official Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
+`OPENAI_LLM_MODEL` defaults to `gpt-6-luna`; `OPENAI_REASONING_EFFORT` defaults to
+`high`. All three settings support `.env`, and existing environment variables
+take precedence. No `temperature` or `top_p` is sent. LLM configuration is
+independent of the embedding configuration stored in the index.
+
+The service preserves the original question exactly and detects its language
+(`en` or `es`). Normalization prepares a faithful English query, preserving names,
+quantities, rule numbers and conditions. Retrieval searches rules and glossary
+separately, with up to `-k` results **per kind** (default 5, up to 10 total).
+`--db`, `--collection` and `--version` work as in `search-rules`. Use `--version`
+to restrict evidence to one edition when multiple editions are indexed.
+
+JSON output contains `original_question`, `language`, `english_query`,
+`can_answer`, `answer`, per-paragraph `claims` with their `source_ids`, necessary
+`assumptions`, and `citations`. Every citation contains its stored source ID,
+kind, title, full source text as `excerpt`, physical page range and edition.
+`retrieved_sources` includes the full context for inspection, including sources
+the answer did not cite. `prompts` records each prompt's name, version and SHA-256;
+`model` and `reasoning_effort` identify the generation configuration.
+
+The model selects supporting IDs; Python validates that every claim has a source
+in the retrieved context and builds citation markers and excerpts from stored
+records. Unknown IDs, empty evidence, model-written citation markers and malformed
+answer contracts cause abstention. These checks validate provenance; semantic
+support and faithful translation still depend on the model and need manual review.
+There is no external knowledge, card lookup, history, relevance threshold or judge.
+
+With empty or insufficient context, `can_answer` is false, the response contains
+a brief abstention in the original language, and claims, assumptions and citations
+are empty. `abstention_reason` distinguishes `empty_context`,
+`insufficient_evidence`, `invalid_citations_or_answer` and
+`unavailable_structured_answer`. A refusal or incomplete generation also abstains.
+Normalization failures and provider/transport errors exit the CLI with an error;
+they do not produce factual answers. An unrelated question such as the capital of
+France must abstain even if the search returns superficially similar records.
+
+Prompts live in `backend/generation/prompts/normalize/v1.md` and
+`backend/generation/prompts/answer/v1.md`; no prompt text is embedded in Python. Each file
+starts with `Name`, `Version` and comma-separated `Variables` headers, followed
+by a blank line and its English instructions. `backend.generation.prompt_loader.load_prompt`
+checks the requested name/version and exact `$variable` contract, hashes the
+original file bytes and reports missing files explicitly. Rendering rejects both
+missing and unexpected variables; values are substituted once, so user-supplied
+dollar signs remain data. New prompt versions should be new files. The package
+includes the Markdown files for installed CLI use.
+
+Backend modules are grouped by functionality: `backend/ingestion/` prepares and
+indexes documents, `backend/retrieval/` searches stored sources, and
+`backend/generation/` handles bilingual answers, the model adapter and versioned
+prompts. Keep new runtime modules within the appropriate functional package.
+
+Reusable API: `AnswerService(Retriever()).answer(question, k=5, version=None)`
+from `backend.generation.answers`. The result is a Pydantic `Answer`; use `model_dump()` or
+`model_dump_json()` to serialize it. Automated checks in `tests/test_answers.py`
+mock model calls and cover prompt contracts, environment loading, Responses API
+arguments, citation validation, both language paths and abstention behavior.

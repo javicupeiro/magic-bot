@@ -6,6 +6,7 @@ requires-python = ">=3.12"
 dependencies = [
     "chromadb==1.5.5",
     "openai>=2,<3",
+    "pydantic>=2,<3",
     "pypdf>=6,<7",
     "python-dotenv>=1,<2",
 ]
@@ -16,6 +17,7 @@ parse-rules = "backend.ingestion.parse_rules:main"
 ingest-rules = "backend.ingestion.ingest:main"
 search-rules = "backend.retrieval.retrieval:main"
 benchmark-retrieval = "evals.retrieval:main"
+answer-rules = "backend.generation.answers:main"
 
 [build-system]
 requires = ["hatchling"]

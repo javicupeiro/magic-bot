@@ -1075,6 +1075,7 @@ source = { editable = "." }
 dependencies = [
     { name = "chromadb" },
     { name = "openai" },
+    { name = "pydantic" },
     { name = "pypdf" },
     { name = "python-dotenv" },
 ]
@@ -1083,6 +1084,7 @@ dependencies = [
 requires-dist = [
     { name = "chromadb", specifier = "==1.5.5" },
     { name = "openai", specifier = ">=2,<3" },
+    { name = "pydantic", specifier = ">=2,<3" },
     { name = "pypdf", specifier = ">=6,<7" },
     { name = "python-dotenv", specifier = ">=1,<2" },
 ]
