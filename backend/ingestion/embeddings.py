@@ -10,6 +10,8 @@ from openai import OpenAI
 
 @dataclass(frozen=True)
 class EmbeddingConfig:
+    """Vector-space settings that must agree between ingestion and retrieval."""
+
     model: str = "text-embedding-3-small"
     dimensions: int = 1536
 
@@ -19,6 +21,7 @@ class EmbeddingConfig:
 
     @classmethod
     def from_env(cls):
+        """Load model and dimensions; existing environment values override .env."""
         load_dotenv()
         return cls(
             model=os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small"),
@@ -27,6 +30,11 @@ class EmbeddingConfig:
 
 
 def validate_vectors(vectors, count: int, dimensions: int):
+    """Reject missing, wrong-sized, nonfinite or zero vectors before indexing.
+
+    Zero vectors have no meaningful cosine direction. Validate cached vectors
+    too, so corrupt cache entries cannot silently enter the search index.
+    """
     if len(vectors) != count or any(
         len(vector) != dimensions or not all(math.isfinite(value) for value in vector)
         or not any(vector) for vector in vectors
@@ -35,11 +43,14 @@ def validate_vectors(vectors, count: int, dimensions: int):
 
 
 class OpenAIEmbeddings:
+    """Convert text batches into vectors using one explicit embedding config."""
+
     def __init__(self, config: EmbeddingConfig):
         self.config = config
         self._client = None
 
     def embed(self, texts: list[str]) -> list[list[float]]:
+        """Return validated vectors in the same order as the supplied texts."""
         # Initialize lazily: a fully cached run needs no API key or network.
         if self._client is None:
             load_dotenv()
@@ -51,6 +62,7 @@ class OpenAIEmbeddings:
             model=self.config.model, dimensions=self.config.dimensions,
             input=texts, encoding_format="float",
         )
+        # Restore input order and reject missing or duplicate response positions.
         items = sorted(response.data, key=lambda item: item.index)
         if [item.index for item in items] != list(range(len(texts))):
             raise ValueError("Provider returned invalid embedding indexes")

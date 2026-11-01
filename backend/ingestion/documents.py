@@ -8,12 +8,18 @@ Kind = Literal["section", "rule", "glossary"]
 
 
 def document_id(version: str, kind: Kind, identifier: str) -> str:
-    """Encode identifiers losslessly, so different terms never share a slug."""
+    """Build an edition-scoped ID without lossy lowercasing or slug conversion.
+
+    Percent-encoding preserves punctuation and accents while protecting the
+    colon separators between edition, kind and rule number or glossary term.
+    """
     return f"mtg:{quote(version, safe='')}:{kind}:{quote(identifier, safe='')}"
 
 
 @dataclass
 class Reference:
+    """Explicit source link; resolved becomes true only for one matching target."""
+
     kind: Kind
     identifier: str
     target_id: str
@@ -22,6 +28,12 @@ class Reference:
 
 @dataclass
 class Document:
+    """Shared parser, ingestion and retrieval record for one source fragment.
+
+    Pages are physical, one-based PDF pages. Optional identifiers describe the
+    fragment's kind: glossary terms never receive invented rule numbers.
+    """
+
     id: str
     kind: Kind
     text: str
@@ -36,4 +48,5 @@ class Document:
     section_number: str | None = None
 
     def to_dict(self) -> dict:
+        """Convert this record and its nested references for JSONL serialization."""
         return asdict(self)

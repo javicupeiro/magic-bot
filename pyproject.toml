@@ -5,6 +5,10 @@ description = "Local tools for working with Magic: The Gathering rules"
 requires-python = ">=3.12"
 dependencies = [
     "chromadb==1.5.5",
+    "httpx>=0.28,<1",
+    "langchain-core>=1,<2",
+    "langchain-openai>=1,<2",
+    "langgraph>=1,<2",
     "openai>=2,<3",
     "pydantic>=2,<3",
     "pypdf>=6,<7",
@@ -12,12 +16,15 @@ dependencies = [
 ]
 
 [project.scripts]
+magic-chat = "backend.workflow.cli:main"
 pdf-to-text = "backend.ingestion.pdf_to_text:main"
 parse-rules = "backend.ingestion.parse_rules:main"
 ingest-rules = "backend.ingestion.ingest:main"
 search-rules = "backend.retrieval.retrieval:main"
 benchmark-retrieval = "evals.retrieval:main"
 answer-rules = "backend.generation.answers:main"
+card-catalogue = "backend.cards.cli:main"
+card-chat = "backend.cards.chat_cli:main"
 
 [build-system]
 requires = ["hatchling"]

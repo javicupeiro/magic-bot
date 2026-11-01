@@ -12,11 +12,16 @@ import pypdf
 
 EXTRACTOR_VERSION = "1"
 PAGE_SEPARATOR = "\n\f\n"
+# Keep empty pages and physical boundaries recoverable by the rule parser.
 DEFAULT_INPUT = Path("data/game_rules/MagicCompRules_20260417.pdf")
 
 
 def extract_pdf(input_path: Path, output_path: Path, manifest_path: Path) -> dict:
-    """Write UTF-8 text and a provenance manifest, retaining every page in order."""
+    """Extract the PDF's existing text into UTF-8 and write a provenance manifest.
+
+    Preserve physical page order, including empty pages. Warnings flag suspect
+    extraction without correcting text or attempting OCR; the PDF is untouched.
+    """
     paths = [path.resolve() for path in (input_path, output_path, manifest_path)]
     if len(set(paths)) != 3:
         raise ValueError("Input, text output, and manifest must be different paths")
@@ -29,6 +34,7 @@ def extract_pdf(input_path: Path, output_path: Path, manifest_path: Path) -> dic
     for page_number, page in enumerate(reader.pages, start=1):
         text = page.extract_text(extraction_mode="plain") or ""
         pages.append(text)
+        # These heuristics flag review candidates; they do not assess text accuracy.
         reasons = []
         if not text.strip():
             reasons.append("empty text layer; OCR was not attempted")
@@ -39,11 +45,13 @@ def extract_pdf(input_path: Path, output_path: Path, manifest_path: Path) -> dic
         if reasons:
             warnings.append({"page": page_number, "reasons": reasons})
 
+    # Read the source's declared edition, rather than guessing from its filename.
     edition_match = re.search(r"These rules are effective as of\s+([^\n]+)", "\n".join(pages[:2]))
     declared_edition = edition_match.group(1).strip().rstrip(".") if edition_match else None
     if declared_edition is None:
         warnings.append({"page": None, "reasons": ["declared edition not found"]})
 
+    # Record enough extraction settings and source identity to reproduce the TXT.
     manifest = {
         "source_pdf": str(input_path),
         "pdf_sha256": hashlib.sha256(pdf_bytes).hexdigest(),
@@ -65,7 +73,7 @@ def extract_pdf(input_path: Path, output_path: Path, manifest_path: Path) -> dic
 
 
 def main() -> None:
-    """Run extraction with configurable source, output and manifest paths."""
+    """Run extraction, e.g. uv run --locked pdf-to-text --input path/rules.pdf."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
     parser.add_argument("--output", type=Path)

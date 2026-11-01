@@ -11,31 +11,41 @@ from openai import OpenAIError
 from pydantic import BaseModel, ConfigDict, Field
 
 from backend.generation.llm import LLM, StructuredOutputError
-from backend.generation.prompt_loader import PROMPTS, load_prompt
+from backend.common.prompts import PROMPTS, load_prompt
 from backend.retrieval.retrieval import Retriever, SearchResult
 
 
 class StructuredModel(BaseModel):
+    """Reject undeclared fields in model output rather than silently ignoring them."""
+
     model_config = ConfigDict(extra="forbid")
 
 
 class NormalizedQuestion(StructuredModel):
+    """Keep the reply language while providing English text for rulebook retrieval."""
+
     language: Literal["en", "es"]
     english_query: str = Field(min_length=1)
 
 
 class Claim(StructuredModel):
+    """One answer statement with IDs of the retrieved sources supporting it."""
+
     text: str = Field(min_length=1)
     source_ids: list[str] = Field(min_length=1)
 
 
 class AnswerDraft(StructuredModel):
+    """Model proposal, checked locally before it becomes a user-facing answer."""
+
     can_answer: bool
     claims: list[Claim]
     assumptions: list[str]
 
 
 class Citation(StructuredModel):
+    """Evidence copied from storage, including its physical pages and edition."""
+
     source_id: str
     kind: str
     title: str
@@ -46,6 +56,8 @@ class Citation(StructuredModel):
 
 
 class Answer(StructuredModel):
+    """Final answer plus evidence, abstention state and generation provenance."""
+
     original_question: str
     language: Literal["en", "es"]
     english_query: str
@@ -63,7 +75,11 @@ class Answer(StructuredModel):
 
 
 def validate_citations(draft: AnswerDraft, context: list[SearchResult]) -> list[Citation]:
-    """Reject unsupported references; construct citations solely from stored data."""
+    """Check reference membership and build citations solely from stored records.
+
+    This checks IDs, evidence presence and output structure; it does not prove
+    that a source logically supports a claim. Repeated IDs produce one citation.
+    """
     if not draft.can_answer:
         if draft.claims or draft.assumptions:
             raise ValueError("An abstention must not contain claims or assumptions")
@@ -76,6 +92,7 @@ def validate_citations(draft: AnswerDraft, context: list[SearchResult]) -> list[
         if not claim.text.strip() or not claim.source_ids:
             raise ValueError("Each claim requires text and source IDs")
         if re.search(r"\[[^\]\n]+\]|mtg:", claim.text):
+            # Render markers ourselves so model-written markers cannot bypass ID checks.
             raise ValueError("Citation markers must be constructed from source IDs, not claim text")
         for identifier in claim.source_ids:
             source = sources.get(identifier)
@@ -91,25 +108,58 @@ def validate_citations(draft: AnswerDraft, context: list[SearchResult]) -> list[
     return list(citations.values())
 
 
+def finish_answer(draft: AnswerDraft, context: list[SearchResult], language: str,
+                  reason: str | None = None) -> dict:
+    """Apply one citation and presentation policy to both answering workflows."""
+    try:
+        citations = validate_citations(draft, context)
+    except ValueError:
+        reason = "invalid_citations_or_answer"
+        draft = AnswerDraft(can_answer=False, claims=[], assumptions=[])
+        citations = []
+    if draft.can_answer:
+        text = "\n\n".join(claim.text + " " + " ".join(
+            f"[{identifier}]" for identifier in dict.fromkeys(claim.source_ids))
+            for claim in draft.claims)
+        reason = None
+    else:
+        text = ("No puedo responder con la evidencia disponible en el documento."
+                if language == "es" else "I cannot answer with the evidence available in the document.")
+        reason = reason or "insufficient_evidence"
+    return {"draft": draft, "citations": citations, "answer": text, "reason": reason}
+
+
 class AnswerService:
+    """Normalize a question, retrieve evidence and validate a structured draft."""
+
     def __init__(self, retriever: Retriever, *, llm: LLM | None = None,
                  prompt_root: Path = PROMPTS):
+        """Keep dependencies; load each active prompt only when its step executes."""
         self.retriever = retriever
         self.llm = llm if llm is not None else LLM()
-        self.normalize_prompt = load_prompt("normalize", root=prompt_root)
-        self.answer_prompt = load_prompt("answer", root=prompt_root)
+        self.prompt_root = prompt_root
 
     def answer(self, question: str, *, k: int = 5, version: str | None = None) -> Answer:
+        """Answer in English or Spanish using at most k sources of each queried kind.
+
+        Preserve the original question and retrieved records for inspection.
+        Invalid drafts become explicit abstentions; provider/network errors still
+        propagate to the caller rather than masquerading as missing evidence.
+        """
         if not question.strip():
             raise ValueError("Question must not be empty")
         if type(k) is not int or k <= 0:
             raise ValueError("k must be a positive integer")
+        # JSON quoting keeps the original question as a distinct prompt value.
         question_json = json.dumps(question, ensure_ascii=False)
+        normalize_prompt = load_prompt("normalize", root=self.prompt_root)
+        prompts = {"normalize": dict(normalize_prompt.metadata())}
         normalized = self.llm.generate(
-            self.normalize_prompt.render(question_json=question_json), NormalizedQuestion)
+            normalize_prompt.render(question_json=question_json), NormalizedQuestion)
         if not normalized.english_query.strip():
             raise ValueError("Normalized query must not be empty")
         context = []
+        # Retrieve rules and glossary separately so one kind cannot fill every slot.
         for kind in ("rule", "glossary"):
             context.extend(self.retriever.search(normalized.english_query, k=k,
                                                 kind=kind, version=version))
@@ -117,43 +167,34 @@ class AnswerService:
         draft = AnswerDraft(can_answer=False, claims=[], assumptions=[])
         citations = []
         if not context:
+            # With no evidence there is no reason to make a second generation call.
             reason = "empty_context"
         else:
+            answer_prompt = load_prompt("answer", root=self.prompt_root)
+            prompts["answer"] = dict(answer_prompt.metadata())
             try:
-                draft = self.llm.generate(self.answer_prompt.render(
+                draft = self.llm.generate(answer_prompt.render(
                     question_json=question_json, language=normalized.language,
                     context_json=json.dumps([source.to_dict() for source in context], ensure_ascii=False),
                 ), AnswerDraft)
-                citations = validate_citations(draft, context)
-                if not draft.can_answer:
-                    reason = "insufficient_evidence"
             except StructuredOutputError:
                 reason = "unavailable_structured_answer"
-            except ValueError:
-                reason = "invalid_citations_or_answer"
-        if reason is not None:
-            draft = AnswerDraft(can_answer=False, claims=[], assumptions=[])
-            citations = []
-        text = "\n\n".join(
-            claim.text + " " + " ".join(f"[{identifier}]" for identifier in dict.fromkeys(claim.source_ids))
-            for claim in draft.claims)
-        if not draft.can_answer:
-            text = ("No puedo responder con la evidencia disponible en el documento."
-                    if normalized.language == "es" else
-                    "I cannot answer with the evidence available in the document.")
+        finished = finish_answer(draft, context, normalized.language, reason)
+        draft, citations = finished["draft"], finished["citations"]
+        text, reason = finished["answer"], finished["reason"]
         return Answer(
             original_question=question, language=normalized.language,
             english_query=normalized.english_query, can_answer=draft.can_answer,
             answer=text, claims=draft.claims, source_ids=[citation.source_id for citation in citations],
             citations=citations, assumptions=draft.assumptions, abstention_reason=reason,
             retrieved_sources=[source.to_dict() for source in context],
-            prompts={"normalize": dict(self.normalize_prompt.metadata()),
-                     "answer": dict(self.answer_prompt.metadata())},
+            prompts=prompts,
             model=self.llm.config.model, reasoning_effort=self.llm.config.reasoning_effort,
         )
 
 
 def main() -> None:
+    """Print a full answer record, e.g. uv run --locked answer-rules 'What is mana?'"""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("question", help="English or Spanish rules question")
     parser.add_argument("-k", type=int, default=5, help="Results per source kind (rules and glossary)")

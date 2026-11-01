@@ -11,6 +11,7 @@ from backend.ingestion.documents import Document, Reference, document_id
 from backend.ingestion.pdf_to_text import PAGE_SEPARATOR
 
 DEFAULT_INPUT = Path("data/processed/MagicCompRules_20260417.txt")
+# Recognize the rulebook's hierarchy (100., 100.1., 100.1a), not arbitrary chunks.
 RULE = re.compile(r"^(\d{3})(?:\.(\d+)(?:([a-z])\.?|\.)|\.)(\s*[A-Z∞“({].*)$")
 SECTION = re.compile(r"^([1-9])\.\s+(.+)$")
 NUMBER = r"\d{3}(?:\.\d+[a-z]?)?"
@@ -40,7 +41,11 @@ def is_term(line: str) -> bool:
 
 
 def extract_references(text: str, version: str) -> list[Reference]:
-    """Extract explicit rule/section lists and ranges, plus glossary 'See' links."""
+    """Extract explicit rule/section lists and ranges, plus glossary 'See' links.
+
+    Targets stay within the supplied edition. Deduplicate mentions here; target
+    existence is checked later, once all documents have been collected.
+    """
     found = {}
 
     def add(kind, identifier):
@@ -56,6 +61,7 @@ def extract_references(text: str, version: str) -> list[Reference]:
             span = REF_RANGE.match(text, pos)
             if span:
                 end = span[1]
+                # Expand abbreviated endings, e.g. 702.1a-c or 100.1-3.
                 if re.fullmatch(r"[a-z]", end) and identifier[-1].isalpha():
                     end = identifier[:-1] + end
                 elif end.isdigit() and len(end) < 3 and '.' in identifier:
@@ -91,7 +97,12 @@ def extract_references(text: str, version: str) -> list[Reference]:
 
 
 def parse_text(text: str, version: str) -> list[Document]:
-    """Preserve source lines and physical (one-based) page spans per fragment."""
+    """Walk page-tagged lines and split at rule, section and glossary headings.
+
+    Trim outer line whitespace while keeping fragment line breaks and physical
+    one-based page spans. Structural headings, rather than token counts, define
+    document boundaries; prose continues the current fragment across pages.
+    """
     if not version.strip():
         raise ValueError("Edition/version must not be empty")
     pages = text.split(PAGE_SEPARATOR)
@@ -113,6 +124,7 @@ def parse_text(text: str, version: str) -> list[Document]:
     section_titles = set()
 
     def finish():
+        # Finalize only at a structural boundary, when the full body is available.
         if current is not None:
             current.text = "\n".join(body).strip()
             current.references = extract_references(" ".join(body), version)
@@ -123,10 +135,12 @@ def parse_text(text: str, version: str) -> list[Document]:
         if not line or line.isdigit() or line == "Magic: The Gathering Comprehensive Rules" or line.startswith("These rules are effective as of"):
             continue
         if line == "Credits":
+            # Credits belong to neither the rules nor the glossary.
             finish()
             current = None
             break
         if line == "Glossary":
+            # Switch heading recognition: glossary titles do not use rule numbers.
             if not glossary:
                 finish()
                 current, body = None, []
@@ -141,11 +155,14 @@ def parse_text(text: str, version: str) -> list[Document]:
         ):
             section = None
         if line in section_titles:
+            # Repeated section headings from page layout should not create duplicates.
             continue
         rule = RULE.match(line) if not glossary else None
         if rule and current and current.rule_number and '.' in current.rule_number and body and re.search(r"\b(?:rules?|sections?)\s*$", body[-1], re.IGNORECASE):
+            # A wrapped reference after "rule" or "section" continues the body.
             rule = None
         if rule and rule[2] is None:
+            # A top-level rule heading should be followed by its numbered subrules.
             following = next((value for _, value in lines[line_index + 1:] if value), "")
             if not re.match(rf"^{rule[1]}\.\d+\.", following):
                 rule = None
@@ -161,6 +178,7 @@ def parse_text(text: str, version: str) -> list[Document]:
             parent_number = f"{rule[1]}.{rule[2]}" if rule[3] else rule[1]
             parent = document_id(version, "rule", parent_number) if rule[2] else document_id(version, "section", rule[1][0])
         if kind:
+            # Close the previous fragment before starting the newly recognized one.
             finish()
             current = Document(
                 id=document_id(version, kind, identifier), kind=kind, text="", version=version,
@@ -174,11 +192,17 @@ def parse_text(text: str, version: str) -> list[Document]:
             body.append(line)
             current.page_end = page
     else:
+        # Normal EOF still needs to flush the final fragment (Credits flushes above).
         finish()
     return documents
 
 
 def summarize(documents: list[Document]) -> dict:
+    """Resolve links in place and report duplicates, empty bodies and missing targets.
+
+    Only a unique target counts as resolved; duplicate IDs cannot establish an
+    unambiguous reference or parent relationship.
+    """
     counts = Counter(document.id for document in documents)
     for document in documents:
         for reference in document.references:
@@ -200,6 +224,11 @@ def summarize(documents: list[Document]) -> dict:
 
 
 def parse_rules(input_path: Path, output_path: Path, report_path: Path, version: str | None = None) -> dict:
+    """Parse TXT into JSONL and an inspection report, optionally overriding edition.
+
+    Always write diagnostics before rejecting duplicates or empty fragments.
+    Unresolved links are reported but do not prevent exporting valid fragments.
+    """
     if len({path.resolve() for path in (input_path, output_path, report_path)}) != 3:
         raise ValueError("Input, JSONL and report must be different paths")
     text = input_path.read_text(encoding="utf-8")
@@ -212,6 +241,7 @@ def parse_rules(input_path: Path, output_path: Path, report_path: Path, version:
     report = {"source_text": str(input_path), "version": version, **summarize(documents)}
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    # Preserve any existing JSONL when structural validation fails.
     if report["duplicate_ids"] or report["empty_fragments"]:
         raise ValueError(f"Duplicate IDs or empty fragments detected; review {report_path}. JSONL was not written")
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -220,6 +250,7 @@ def parse_rules(input_path: Path, output_path: Path, report_path: Path, version:
 
 
 def main() -> None:
+    """Generate records with parse-rules; --id prints one record after regeneration."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
     parser.add_argument("--output", type=Path)

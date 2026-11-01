@@ -9,7 +9,7 @@ from unittest.mock import Mock, patch
 
 from backend.generation.answers import AnswerDraft, AnswerService, Claim, NormalizedQuestion, validate_citations
 from backend.generation.llm import LLM, LLMConfig, StructuredOutputError
-from backend.generation.prompt_loader import load_prompt
+from backend.common.prompts import load_prompt, PROMPT_VERSIONS
 from backend.retrieval.retrieval import SearchResult
 
 
@@ -23,12 +23,13 @@ def supported_draft():
 
 class PromptTests(unittest.TestCase):
     def test_bundled_prompts_have_version_hash_and_strict_variables(self):
-        for name, variables in [("normalize", {"question_json": '"$literal"'}),
-                                ("answer", {"question_json": '"$literal"', "language": "es", "context_json": "[]"})]:
+        for name in PROMPT_VERSIONS:
+            template = load_prompt(name)
+            variables = {key: '"$literal"' for key in template.variables}
             prompt = load_prompt(name)
             self.assertEqual(prompt.name, name)
-            self.assertEqual(prompt.version, "v1")
-            path = Path("backend/generation/prompts") / name / "v1.md"
+            self.assertEqual(prompt.version, PROMPT_VERSIONS[name])
+            path = Path("backend/prompts") / name / f"{prompt.version}.md"
             self.assertEqual(prompt.sha256, hashlib.sha256(path.read_bytes()).hexdigest())
             self.assertIn('"$literal"', prompt.render(**variables))
             with self.assertRaisesRegex(ValueError, "missing variables"):
@@ -57,18 +58,21 @@ class PromptTests(unittest.TestCase):
 
 
 class LLMTests(unittest.TestCase):
-    def test_responses_structured_contract_without_sampling_parameters(self):
+    def test_structured_and_tool_calls_use_the_same_native_client(self):
+        from langchain_core.messages import AIMessage, HumanMessage
         client = Mock()
         output = NormalizedQuestion(language="en", english_query="mana")
-        client.responses.parse.return_value = SimpleNamespace(status="completed", output_parsed=output)
-        self.assertEqual(LLM(client=client).generate("prompt", NormalizedQuestion), output)
-        client.responses.parse.assert_called_once_with(
-            model="gpt-6-luna", reasoning={"effort": "high"},
-            input=[{"role": "user", "content": "prompt"}], text_format=NormalizedQuestion, store=False)
-        for status, parsed in [("incomplete", output), ("completed", None)]:
-            client.responses.parse.return_value = SimpleNamespace(status=status, output_parsed=parsed)
-            with self.assertRaises(StructuredOutputError):
-                LLM(client=client).generate("prompt", NormalizedQuestion)
+        client.with_structured_output.return_value.invoke.return_value = output
+        llm = LLM(client=client)
+        self.assertEqual(llm.generate("prompt", NormalizedQuestion), output)
+        client.with_structured_output.assert_called_once_with(NormalizedQuestion, method="json_schema", strict=True)
+        client.with_structured_output.return_value.invoke.return_value = None
+        with self.assertRaises(StructuredOutputError):
+            llm.generate("prompt", NormalizedQuestion)
+        message = AIMessage(content="Ready")
+        client.bind_tools.return_value.invoke.return_value = message
+        self.assertIs(llm.call_tools([HumanMessage("question")], []), message)
+        client.bind_tools.assert_called_once_with([], parallel_tool_calls=False)
 
     def test_environment_and_dotenv_overrides(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -77,13 +81,13 @@ class LLMTests(unittest.TestCase):
             from dotenv import load_dotenv
             with patch.dict(os.environ, {"OPENAI_LLM_MODEL": "from-env"}, clear=True), \
                     patch("backend.generation.llm.load_dotenv", side_effect=lambda: load_dotenv(env)), \
-                    patch("backend.generation.llm.OpenAI") as provider:
+                    patch("backend.generation.llm.ChatOpenAI") as provider:
                 llm = LLM()
                 self.assertEqual(llm.config, LLMConfig("from-env", "low"))
-                provider.return_value.responses.parse.return_value = SimpleNamespace(
-                    status="completed", output_parsed=NormalizedQuestion(language="en", english_query="mana"))
+                provider.return_value.with_structured_output.return_value.invoke.return_value = NormalizedQuestion(language="en", english_query="mana")
                 llm.generate("prompt", NormalizedQuestion)
-                provider.assert_called_once_with(api_key="fixture-key")
+                self.assertEqual(provider.call_args.kwargs["api_key"], "fixture-key")
+                self.assertEqual(provider.call_args.kwargs["model"], "from-env")
         with patch.dict(os.environ, {}, clear=True), patch("backend.generation.llm.load_dotenv"):
             with self.assertRaisesRegex(ValueError, "OPENAI_API_KEY"):
                 LLM().generate("prompt", NormalizedQuestion)

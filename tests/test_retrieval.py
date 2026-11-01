@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from unittest.mock import Mock, patch
 
-from backend.ingestion.documents import Document
+from backend.ingestion.documents import Document, Reference
 from backend.ingestion.embeddings import EmbeddingConfig
 from backend.ingestion.ingest import ingest
 from backend.retrieval.retrieval import Retriever
@@ -51,7 +51,7 @@ class RetrievalTests(unittest.TestCase):
             self.assertAlmostEqual(result.distance, distance, places=6)
             self.assertAlmostEqual(result.similarity, similarity, places=6)
         self.assertEqual(results[0].to_dict(), {
-            "id": "same", "kind": "rule", "title": "Same", "text": "Aligned.",
+            "id": "same", "kind": "rule", "title": "Same", "text": "Aligned.", "references": [],
             "page_start": 1, "page_end": 2, "version": "edition", "distance": 0., "similarity": 1.})
         self.embedder.embed.assert_called_once_with(["query"])
         self.assertEqual(len(self.retriever.search("query", k=1)), 1)
@@ -64,6 +64,10 @@ class RetrievalTests(unittest.TestCase):
         self.assertEqual(self.retriever.search("query", version="absent"), [])
 
     def test_exact_rule_and_id_do_not_embed(self):
+        self.documents[1].references = [Reference("rule", "702.49a", "same", True)]
+        self.write_and_ingest()
+        self.embedder.embed.reset_mock()
+        self.assertEqual(self.retriever.get("orthogonal")[0].references, self.documents[1].references)
         self.documents.append(replace(self.documents[0], id="same-new", version="new edition"))
         self.write_and_ingest()
         self.embedder.embed.reset_mock()
