@@ -23,6 +23,8 @@ METHODS = ("vector", "hybrid")
 # The paired evaluation found equal mean recall and individual regressions.
 # Keep vector as the default; hybrid remains an explicit, measurable option.
 DEFAULT_METHOD = "vector"
+# The measured sweep found the highest reviewed-source recall at twenty hits.
+DEFAULT_K = 20
 
 KINDS = ("rule", "section", "glossary")
 DISTANCE_EXPLANATION = (
@@ -149,7 +151,7 @@ class Retriever:
             self.lexical_indexes[version] = BM25Index(documents)
         return self.lexical_indexes[version]
 
-    def search(self, query: str, *, k: int = 5, kind: str | None = None,
+    def search(self, query: str, *, k: int = DEFAULT_K, kind: str | None = None,
                version: str | None = None, method: str | None = None) -> list[SearchResult]:
         """Retrieve vector neighbors or fuse them with BM25, preserving provenance.
 
@@ -232,7 +234,7 @@ def main() -> None:
     mode.add_argument("query", nargs="?", help="Free-text retrieval query (the corpus is English)")
     mode.add_argument("--rule", help="Exact rule number, e.g. 702.49a; no embedding request")
     mode.add_argument("--id", help="Exact document ID; no embedding request")
-    parser.add_argument("-k", type=int, default=5, help="Positive number of search results")
+    parser.add_argument("-k", type=int, default=DEFAULT_K, help=f"Positive number of search results (default: {DEFAULT_K})")
     parser.add_argument("--kind", choices=KINDS)
     parser.add_argument("--version", help="Filter by exact rulebook edition")
     parser.add_argument("--db", type=Path, default=Path("data/chroma"))

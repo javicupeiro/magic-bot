@@ -17,3 +17,20 @@ data/processed/*.jsonl
 data/processed/*.report.json
 
 /docs/development.md
+
+# Local answer-review experiments and their saved results.
+data/answer_review/
+data/answer_review_v2/
+docs/answer-review.md
+docs/answer-review-evaluation.md
+docs/answer-review-ablation.md
+docs/answer-review-ablation-checkpoint.md
+docs/images/answer-review/
+docs/images/answer-review-v2/
+tests/test_answer_review_eval.py
+
+# Experiment runners. The retrieval scripts already in git stay tracked.
+evals/*
+!evals/__init__.py
+!evals/retrieval.py
+!evals/plot_retrieval.py

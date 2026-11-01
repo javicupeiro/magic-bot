@@ -24,6 +24,7 @@ class CardState(TypedDict, total=False):
     """Only messages append; evidence fields are replaced with their latest value."""
 
     question: str
+    resolved_question: str
     card_names: list[str]
     tool_messages: Annotated[list[BaseMessage], add_messages]
     exchanges: list[dict]
@@ -52,7 +53,11 @@ def build_card_graph(api, llm, *, max_calls=4):
             resolver = load_prompt("resolve_cards")
             messages.append(SystemMessage(resolver.render(names_json=json.dumps(state["card_names"], ensure_ascii=False))))
             prompts[resolver.name] = dict(resolver.metadata())
-        messages.append(HumanMessage(state["question"]))
+        question = state["question"]
+        if state.get("resolved_question"):
+            question = json.dumps({"original": question, "resolved": state["resolved_question"]},
+                                  ensure_ascii=False)
+        messages.append(HumanMessage(question))
         return {"tool_messages": messages, "cards": [], "exchanges": [], "card_prompts": prompts}
 
     def model(state):
@@ -98,7 +103,10 @@ def build_card_graph(api, llm, *, max_calls=4):
         # The final structured reply is a separate visible model call, with no
         # tools attached. Exhausting the call budget cannot trigger more HTTP.
         prompt = load_prompt("card_reply")
-        reply = llm.generate(prompt.render(question_json=json.dumps(state["question"], ensure_ascii=False),
+        question = state["question"]
+        if state.get("resolved_question"):
+            question = {"original": question, "resolved": state["resolved_question"]}
+        reply = llm.generate(prompt.render(question_json=json.dumps(question, ensure_ascii=False),
                              evidence_json=json.dumps(state["exchanges"], ensure_ascii=False)), CardReply)
         verified = set()
         ambiguous = []

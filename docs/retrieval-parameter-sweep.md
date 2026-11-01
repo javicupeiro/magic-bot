@@ -17,7 +17,7 @@ recuperar y cuántos candidatos fusionar; no evalúa respuestas generadas.
 - Validación y construcción inicial de BM25 medidas aparte: 422.85 ms.
   Las latencias de búsqueda incluyen embeddings, red, consulta, ranking y
   materialización de fuentes, pero excluyen esa construcción inicial.
-- No se modifica la colección, el algoritmo ni los valores predeterminados.
+- Durante el experimento no se modificaron la colección, el algoritmo ni los valores predeterminados.
 
 El fichero [parameter-sweep.json](../data/retrieval/parameter-sweep.json) conserva
 el orden de ejecución, configuración, fuentes y candidatos completos de la primera
@@ -207,7 +207,10 @@ concreta a esos dos cambios sin instrumentación adicional.
 **Conclusión de alcance:** k=5 no era una exploración suficiente. La matriz
 muestra una mejora clara al recuperar más fuentes y compromisos interesantes
 con híbrido, pero no justifica imponer un único método para todas las preguntas.
-Se conserva el valor predeterminado existente y se documentan las alternativas.
+El experimento conservó inicialmente el valor predeterminado existente. Tras
+revisar los resultados, la configuración actual es **vector con k=20**; el
+presupuesto del workflow sigue siendo 24.000 caracteres. El cambio no implica
+que se haya evaluado la calidad de las respuestas completas.
 El criterio inicial de promoción era para k=5: ninguna configuración nueva de
 k=5 elimina las regresiones individuales. Los resultados de k mayores son
 exploratorios, no una redefinición retroactiva de ese criterio.

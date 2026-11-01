@@ -14,7 +14,7 @@ from openai import OpenAIError
 
 from backend.ingestion.ingest import DEFAULT_INPUT
 from backend.retrieval.hybrid import DEFAULT_CANDIDATES, RRF_CONSTANT
-from backend.retrieval.retrieval import DEFAULT_METHOD, METHODS, DISTANCE_EXPLANATION, Retriever
+from backend.retrieval.retrieval import DEFAULT_K, DEFAULT_METHOD, METHODS, DISTANCE_EXPLANATION, Retriever
 
 
 def summarize(runs: list[dict]) -> dict:
@@ -38,7 +38,7 @@ def summarize(runs: list[dict]) -> dict:
             "query_measurements": len(runs)}
 
 
-def benchmark(retriever: Retriever, cases: dict, *, k: int = 5,
+def benchmark(retriever: Retriever, cases: dict, *, k: int = DEFAULT_K,
               method: str = DEFAULT_METHOD) -> dict:
     """Measure reviewed-source recall, search latency and serialized context size.
 
@@ -149,7 +149,7 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True, help="Destination snapshot; existing file is replaced")
     parser.add_argument("--db", type=Path, default=Path("data/chroma"))
     parser.add_argument("--collection", default="magic-rules")
-    parser.add_argument("-k", type=int, default=5)
+    parser.add_argument("-k", type=int, default=DEFAULT_K)
     parser.add_argument("--method", choices=(*METHODS, "both"), default=DEFAULT_METHOD)
     parser.add_argument("--source", type=Path, default=DEFAULT_INPUT)
     parser.add_argument("--candidate-limit", type=int, default=DEFAULT_CANDIDATES)

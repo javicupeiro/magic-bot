@@ -127,7 +127,7 @@ current embedding environment overrides. The stored schema, text format, Chroma
 version and HNSW configuration must match the current ingestion contract before
 searching. Queries are trimmed and embedded as plain query text; indexed sources
 retain the ingestion title/body format. Semantic search needs `OPENAI_API_KEY`.
-`-k` must be positive (default 5); requests exceeding the collection size are
+`-k` must be positive (default 20); requests exceeding the collection size are
 capped. `--kind` accepts `rule`, `section` or `glossary`. An exact `--version`
 filter selects an edition, for example `--version 'April 17, 2026'`.
 
@@ -201,7 +201,7 @@ uv run --locked search-rules 'What does rule 702.49a say about ninjutsu?' --meth
 uv run --locked search-rules --rule 702.49a --method hybrid
 uv run --locked magic-chat '¿Qué es dañar primero?' --method hybrid --json
 uv run --locked answer-rules 'What is ninjutsu?' --method hybrid
-uv run --locked benchmark-retrieval --method both --output data/retrieval/local-comparison.json
+uv run --locked benchmark-retrieval --method both -k 5 --output data/retrieval/local-comparison.json
 ```
 
 `--source` selects the parsed JSONL and `--candidate-limit` selects the branch
@@ -315,6 +315,8 @@ per-query recall, hit/full-recall rates, MRR, latency percentiles and context si
 
 This sweep excludes separately measured lexical setup from search latency and
 shuffles configuration order each round. Timings therefore use a different
-protocol from the original paired run. Defaults remain unchanged. No generated
+protocol from the original paired run. After reviewing the sweep, the application
+default is now vector with k=20, matching the highest measured recall. The workflow
+still shares its 24,000-character budget across rules and cards. No generated
 answers or workflow budget survival were evaluated; all context sizes are raw
 retrieval arrays rather than expanded prompts.

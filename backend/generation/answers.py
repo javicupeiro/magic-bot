@@ -14,7 +14,7 @@ from backend.generation.llm import LLM, StructuredOutputError
 from backend.common.prompts import PROMPTS, load_prompt
 from backend.ingestion.ingest import DEFAULT_INPUT
 from backend.retrieval.hybrid import DEFAULT_CANDIDATES
-from backend.retrieval.retrieval import DEFAULT_METHOD, METHODS, Retriever, SearchResult
+from backend.retrieval.retrieval import DEFAULT_K, DEFAULT_METHOD, METHODS, Retriever, SearchResult
 
 
 class StructuredModel(BaseModel):
@@ -112,10 +112,17 @@ def validate_citations(draft: AnswerDraft, context: list[SearchResult]) -> list[
 
 def finish_answer(draft: AnswerDraft, context: list[SearchResult], language: str,
                   reason: str | None = None) -> dict:
-    """Apply one citation and presentation policy to both answering workflows."""
+    """Validate and render a proposal; return an abstention on invalid citations.
+
+    validation_error preserves the exact local rejection for evidence reviewers.
+    This function performs no model calls and never mutates the original draft.
+    """
+    validation_error = None
     try:
         citations = validate_citations(draft, context)
-    except ValueError:
+    except ValueError as exc:
+        # Preserve the deterministic rejection for callers that review the proposal.
+        validation_error = str(exc)
         reason = "invalid_citations_or_answer"
         draft = AnswerDraft(can_answer=False, claims=[], assumptions=[])
         citations = []
@@ -128,7 +135,8 @@ def finish_answer(draft: AnswerDraft, context: list[SearchResult], language: str
         text = ("No puedo responder con la evidencia disponible en el documento."
                 if language == "es" else "I cannot answer with the evidence available in the document.")
         reason = reason or "insufficient_evidence"
-    return {"draft": draft, "citations": citations, "answer": text, "reason": reason}
+    return {"draft": draft, "citations": citations, "answer": text, "reason": reason,
+            "validation_error": validation_error}
 
 
 class AnswerService:
@@ -141,7 +149,7 @@ class AnswerService:
         self.llm = llm if llm is not None else LLM()
         self.prompt_root = prompt_root
 
-    def answer(self, question: str, *, k: int = 5, version: str | None = None) -> Answer:
+    def answer(self, question: str, *, k: int = DEFAULT_K, version: str | None = None) -> Answer:
         """Answer in English or Spanish using at most k sources of each queried kind.
 
         Preserve the original question and retrieved records for inspection.
@@ -199,7 +207,7 @@ def main() -> None:
     """Print a full answer record, e.g. uv run --locked answer-rules 'What is mana?'"""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("question", help="English or Spanish rules question")
-    parser.add_argument("-k", type=int, default=5, help="Results per source kind (rules and glossary)")
+    parser.add_argument("-k", type=int, default=DEFAULT_K, help="Results per source kind (rules and glossary)")
     parser.add_argument("--version", help="Exact rulebook edition")
     parser.add_argument("--db", type=Path, default=Path("data/chroma"))
     parser.add_argument("--collection", default="magic-rules")

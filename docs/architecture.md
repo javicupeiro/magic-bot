@@ -14,7 +14,7 @@ model; LangGraph decides when those operations run.
 - `backend/cards/tools.py`: the two `@tool` functions and their argument schemas.
 - `backend/cards/agent.py`: the native card-tool subgraph, also used by `card-chat`.
 - `backend/cards/replies.py`: structured card reply and evidence records.
-- `backend/workflow/`: routing, rule nodes, context expansion and CLI.
+- `backend/workflow/`: routing, rule nodes, persistent conversations, context selection and CLI.
 - `backend/common/prompts.py`: the reusable loader and active prompt versions.
 - `backend/prompts/`: versioned Markdown instructions for all model steps.
 - `tests/`: deterministic behavior checks; `evals/`: retrieval quality measurements.
@@ -50,15 +50,26 @@ for inspection but are not followed.
 
 ```mermaid
 flowchart TD
-    Start --> Route
+    Start[Load history and reset turn fields] --> Route[Resolve follow-up, translate and route]
     Route -->|Rules without named cards| Decompose
     Route -->|Card search or named cards| Cards[Card subgraph]
     Route -->|Unclear or outside scope| Clarify
     Cards --> Check[Check card evidence]
     Check -->|Resolved interaction| Decompose
-    Check -->|Search or unresolved identity| End
-    Decompose --> Retrieve --> Expand --> Generate --> Validate --> End
-    Clarify --> End
+    Check -->|Completed card search| Remember
+    Check -->|Unresolved identity: clarification| Remember
+    Decompose --> Retrieve --> Expand --> Generate[Generate: model draft]
+    Generate --> Validate[Validate: Python citation checks]
+    Validate --> Review[Review: model evidence verdict]
+    Review --> Gate{Python: approval and retrieval budget}
+    Gate -->|Valid citations and supported answer| Approved[Finalize: approved answer]
+    Gate -->|Rejected, queries available, zero extra rounds| More[Retrieve more: one round, up to three queries]
+    More --> Repair[Repair: model correction] --> Validate
+    Gate -->|Still rejected, no queries or round spent| Abstain[Finalize: abstention]
+    Approved --> Remember
+    Abstain --> Remember
+    Clarify --> Remember
+    Remember[Store completed user and assistant messages] --> End
 ```
 
 `WorkflowState` is the data shared between nodes. A node returns only updated
@@ -73,7 +84,55 @@ character budget with verified cards; this is not a token budget.
 `Generate` produces claims with source IDs. `finish_answer()` is shared by this
 graph and the simpler `answer-rules` baseline: it validates IDs, constructs
 citations from stored records and renders the answer or abstention. It cannot
-prove that an interpretation is correct. Answer review remains future work.
+prove that an interpretation is correct.
+
+`Review` uses the same LLM to assess the question, verified cards, bounded rules
+and original proposal, including the exact citation rejection when present.
+`AnswerReview` carries `supported`, `unsupported_claims`, `missing_information`
+and up to three `followup_queries`. Brief factual objections are stored in
+`reviews`; no private reasoning is requested. Python only accepts a complete,
+locally valid draft with an affirmative, consistent verdict.
+
+On rejection, Python permits one additional retrieval round, recorded in
+`additional_retrievals`, and then `Repair`. Old cited sources have priority,
+followed by new hits and remaining old sources, within the same character budget.
+There is no additional reference expansion. Repair requests preservation of
+supported parts; citation validation and a final review check the complete result.
+The final verdict cannot reopen retrieval. Rejection clears final claims/citations
+and renders the shared abstention.
+
+## Conversation lifetime
+
+`QuestionWorkflow` owns one `SqliteSaver` connection and catalogue client inside
+its `with` block. It compiles once against those live dependencies and discards
+the graph before closing them. `answer()` and `stream()` accept a stable
+`conversation_id`, mapped directly to LangGraph's `thread_id`. Omitting it creates
+a new conversation; the result (or CLI event header) exposes the generated ID.
+The same ID and SQLite path recover history after a backend restart.
+
+`memory.py` opens SQLite and defines a reference-counted per-conversation lock.
+The lock spans loading, preparation and all graph execution, including streaming,
+and is shared across workflow instances in one process. SQLite serializes storage
+access; this local lock additionally prevents two turns from reading the same
+old state and overwriting each other's conversation. Separate backend processes
+need additional coordination and are outside the local runtime contract.
+
+`messages` contains the complete completed user/assistant history. `_prepare_turn`
+selects recent context, then resets every turn field: decisions, cards, native
+`tool_messages`, exchanges, evidence, drafts, citations, reviews, budgets, prompt
+provenance and trace. Historical checkpoints remain in SQLite for inspection;
+they are never reused as current evidence. Only `remember` appends a completed
+turn. Failed/interrupted turns do not append partial conversation messages; the
+next invocation prepares a new turn rather than resuming an unfinished node.
+
+`context.py` selects whole recent turns for `history` without changing `messages`.
+Tool-call/result groups remain atomic if native tool messages are ever supplied
+for selection. The mandatory current question counts toward the history limit;
+an oversized question raises an error. `route/v2` resolves references using this
+bounded history before translation/classification. Its self-contained English
+intent reaches card tools and rule generation/review; original text and reply
+language remain separate. Previous answers guide interpretation, never evidence.
+See [conversation memory](conversation-memory.md) for budgets and examples.
 
 ## Native tool cycle
 
@@ -130,15 +189,16 @@ the browser. No internal reasoning or encrypted provider state belongs in the UI
 
 Future work may add callbacks, safe HTTP events and the panel. They must distinguish
 the parent cards span from its children when aggregating tokens and duration.
-There are currently no persistent sessions, token dashboard or Langfuse traces.
+Local SQLite conversations are persistent. There is no token dashboard or Langfuse tracing yet.
 
 ## Limits and tradeoffs
 
 - Complete catalogue evidence is checked structurally; free-form prose still relies on the model.
 - The rules context limit counts characters, not the complete request's tokens.
+- Large verified-card records are not themselves bounded. Card evidence can exceed the entire budget and prevent rules from fitting, including after recovery.
 - `answer-rules` remains a deliberately simple baseline for comparison. It shares the model, prompts and final validation policy with the main workflow.
 - Exact lookups need no embeddings. Semantic queries still embed each query per search call; batching/caching is not part of this cleanup.
-- A new graph and HTTP client are created for each independent question. Persistent conversations are planned for a later iteration.
+- A context-managed workflow reuses its compiled graph and open HTTP/SQLite resources. Standalone calls open and close them automatically; conversation continuity depends on the supplied ID.
 
 References: [LangGraph workflows](https://docs.langchain.com/oss/python/langgraph/workflows-agents),
 [ChatOpenAI integration](https://docs.langchain.com/oss/python/integrations/chat/openai).

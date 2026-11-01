@@ -36,6 +36,7 @@ as one JSON object, suitable for saving or inspecting with another program.
 import argparse
 import json
 from pathlib import Path
+import sqlite3
 
 import chromadb
 from openai import OpenAIError
@@ -44,8 +45,9 @@ from pydantic import BaseModel
 from backend.cards.mtg_api import MtgApiClient
 from backend.ingestion.ingest import DEFAULT_INPUT
 from backend.retrieval.hybrid import DEFAULT_CANDIDATES
-from backend.retrieval.retrieval import DEFAULT_METHOD, METHODS, Retriever, SearchResult
+from backend.retrieval.retrieval import DEFAULT_K, DEFAULT_METHOD, METHODS, Retriever, SearchResult
 from backend.workflow.graph import QuestionWorkflow
+from backend.workflow.memory import DEFAULT_MEMORY_PATH
 
 
 def _serialize(value):
@@ -64,7 +66,7 @@ def _serialize(value):
 
 
 def main():
-    """Parse options, execute one independent question, and render its result.
+    """Parse options, execute a new or resumed conversation turn, and render it.
 
     Exit codes: 0 for a completed run (including clarification or abstention),
     1 for handled model/index/configuration failures, and 2 for invalid CLI use.
@@ -75,13 +77,18 @@ def main():
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("question", help="English or Spanish question; quote it as one argument")
+    parser.add_argument("--conversation-id", help="Resume this conversation; omission starts a new one")
+    parser.add_argument("--memory-db", type=Path, default=DEFAULT_MEMORY_PATH,
+                        help="SQLite checkpoint file (default: data/conversations/checkpoints.sqlite)")
+    parser.add_argument("--history-budget", type=int, default=8000,
+                        help="Serialized recent history plus current question characters (default: 8000)")
     parser.add_argument("--db", type=Path, default=Path("data/chroma"),
                         help="Persisted rules index directory (default: data/chroma)")
     parser.add_argument("--collection", default="magic-rules",
                         help="Existing Chroma collection (default: magic-rules)")
     parser.add_argument("--version", help="Restrict retrieval to an exact rulebook edition")
-    parser.add_argument("-k", type=int, default=5,
-                        help="Results per query and kind, before deduplication (default: 5)")
+    parser.add_argument("-k", type=int, default=DEFAULT_K,
+                        help=f"Results per query and kind, before deduplication (default: {DEFAULT_K})")
     parser.add_argument("--max-calls", type=int, default=4,
                         help="Total card tool requests, including rejected requests (default: 4)")
     parser.add_argument("--max-pages", type=int, default=3,
@@ -124,23 +131,26 @@ def main():
                 return self._get().get(*values, **options)
 
         # 3. Inject dependencies and limits, then execute the graph. The factory
-        # creates the catalogue client when answer() starts; its context manager
+        # creates the catalogue client when the workflow opens; its context manager
         # keeps the pool open for all nodes and releases owned connections on exit.
         # The model cannot choose these HTTP settings through tool arguments.
         workflow = QuestionWorkflow(LazyRetriever(), k=args.k, version=args.version,
             max_calls=args.max_calls, context_budget=args.context_budget,
+            memory_path=args.memory_db, history_budget=args.history_budget,
             api_factory=lambda: MtgApiClient(max_pages=args.max_pages))
+        conversation_id = args.conversation_id if args.conversation_id is not None else workflow.new_conversation()
         if args.events:
-            for namespace, update in workflow.stream(args.question):
+            print(json.dumps({"conversation_id": conversation_id}, ensure_ascii=False), flush=True)
+            for namespace, update in workflow.stream(args.question, conversation_id=conversation_id):
                 # Only publish node names here: raw messages may include private
                 # provider metadata. The later HTTP adapter will allowlist fields.
                 print(json.dumps({"namespace": namespace, "nodes": list(update)}, ensure_ascii=False), flush=True)
             return
-        state = workflow.answer(args.question)
+        state = workflow.answer(args.question, conversation_id=conversation_id)
     except OpenAIError as exc:
         # Avoid printing provider exception bodies, which can contain request data.
         parser.exit(1, f"Model request failed ({type(exc).__name__})\n")
-    except (OSError, ValueError, chromadb.errors.ChromaError) as exc:
+    except (OSError, ValueError, sqlite3.Error, chromadb.errors.ChromaError) as exc:
         parser.exit(1, f"Workflow failed: {exc}\n")
 
     # 4. Choose one output format. ensure_ascii=False preserves Spanish text;
@@ -152,6 +162,7 @@ def main():
     # The readable form leads with the answer, then exposes the execution trail.
     # Tool exchanges retain full results and IDs; citations retain source text.
     print(state["answer"])
+    print("\nConversation: " + state["conversation_id"])
     print("\nNodes: " + " → ".join(item["node"] for item in state["trace"]))
     for item in state["trace"]:
         print(json.dumps(item, ensure_ascii=False))

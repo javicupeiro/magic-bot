@@ -17,7 +17,8 @@ uv run --locked python -m unittest discover -s tests -p test_workflow.py -v
 - Answer tests protect prompt contracts and shared citation/abstention policy.
 - Catalogue tests own HTTP pagination, filters, failures and localized names.
 - Tool tests own native call/result messages, schema rejection, budgets and evidence checks.
-- Workflow tests check routing, actual subgraph event visibility, interaction handoff and bounded reference expansion. They do not repeat every HTTP/tool edge case.
+- Workflow tests check routing, actual subgraph event visibility, interaction handoff, bounded reference expansion, evidence approval/repair/abstention
+  and the single additional retrieval round. They do not repeat every HTTP/tool edge case.
 
 Prefer one regression for a real risk over many implementation-shaped assertions.
 No coverage percentage target, CSS snapshot suite or exact LLM wording tests.
@@ -42,3 +43,32 @@ compares final result counts and hybrid candidate budgets with fixed judgments.
 The suite checks this matrix using temporary Chroma and fake embeddings, including
 repeated measurements, independent limits and retained source evidence. Live sweep
 latencies include fresh provider calls and exclude separately timed lexical setup.
+
+## Evidence review checks
+
+`test_review_approval_repair_and_persistent_rejection` runs three simulated
+verdict sequences through the actual graph. It checks preserved supported text,
+new evidence reaching repair, rejected text disappearing, cleared final citations
+and a maximum of one extra retrieval round, even when the final review requests
+more searches. Other workflow checks cover deterministic citation rejections
+reaching the judge, contradictory approvals and unavailable review/repair output.
+These assertions check orchestration, not a real model's semantic accuracy.
+
+For a live comparison, inspect the first `validate` update from
+`QuestionWorkflow.stream()` and compare it with the final `finalize` update.
+This holds the initial draft/evidence fixed; the additional model calls belong
+to review and optional repair. Alternatively compare the CLI baseline and workflow,
+noting that their normalization and retrieval paths differ.
+
+## Conversation memory
+
+```sh
+uv run --locked python -m unittest discover -s tests -p test_conversation_memory.py -v
+```
+
+These checks use temporary SQLite databases, real compiled graphs, deterministic
+models and mocked catalogue HTTP. They cover restart/isolated conversations,
+typed checkpoint reconstruction, resetting tools/evidence/drafts/review budgets,
+full storage with bounded model history, atomic parallel tool pairs and local
+turn exclusion. Existing workflow tests also use temporary memory databases.
+See [conversation memory](conversation-memory.md) for a live CLI demonstration.

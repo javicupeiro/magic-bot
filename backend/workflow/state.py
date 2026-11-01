@@ -20,7 +20,7 @@ from backend.retrieval.retrieval import SearchResult
 class RouteDecision(StructuredModel):
     """Structured classification returned by the route prompt.
 
-    english_query supports retrieval against the English rulebook. card_names
+    english_query resolves conversational references before English retrieval. card_names
     keeps proper names as provided so localized names can be verified by tools.
     clarification is user-facing text for the clarify route, empty otherwise.
     """
@@ -42,8 +42,26 @@ class Decomposition(StructuredModel):
     queries: list[str] = Field(min_length=1, max_length=3)
 
 
+class AnswerReview(StructuredModel):
+    """Evidence verdict with short, verifiable objections, never private reasoning.
+
+    The model proposes follow-up searches; Python controls whether they may run.
+    An affirmative verdict cannot override a deterministic citation rejection.
+    """
+
+    supported: bool
+    unsupported_claims: list[str]
+    missing_information: list[str]
+    followup_queries: list[str] = Field(max_length=3)
+
+
+class EvidenceReview(AnswerReview):
+    """Separate evidence correction, retrieval and appropriate abstention."""
+    action: Literal["approve", "repair", "retrieve", "abstain"]
+
+
 class WorkflowState(TypedDict, total=False):
-    """Invocation-local records; no persistent conversation or autonomous loop.
+    """Persistent conversation messages alongside replaceable per-turn records.
 
     total=False allows fields to appear as nodes produce them. With no custom
     reducers, a returned field replaces its old value rather than appending.
@@ -52,6 +70,11 @@ class WorkflowState(TypedDict, total=False):
     Provider protocol details are handled by the model integration.
     """
 
+    # Only completed user/assistant turns enter persistent conversational history.
+    messages: list[BaseMessage]
+    history: list[BaseMessage]
+    resolved_question: str
+    conversation_id: str
     # Generation provenance and the original, unmodified user input.
     model: str
     reasoning_effort: str
@@ -71,6 +94,15 @@ class WorkflowState(TypedDict, total=False):
     # Stored rulebook evidence, model proposal, locally checked citations, prose.
     context: list[SearchResult]
     draft: AnswerDraft
+    # Keep the unmodified proposal even when finish_answer rejects its citations.
+    candidate_draft: AnswerDraft
+    validation_error: str | None
+    review: AnswerReview
+    reviews: list[dict]
+    repair_queries: list[str]
+    additional_retrievals: int
+    repairs: int
+    repair_allowed: bool
     citations: list[Citation]
     answer: str
     # Terminal conditions and diagnostics explain why a path stopped or abstained.

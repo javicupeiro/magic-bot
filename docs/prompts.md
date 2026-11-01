@@ -25,9 +25,11 @@ checks the file/header version and records the SHA-256 of the original bytes.
 ## Active versions
 
 - `normalize/v1`: language and English query for the simple RAG baseline.
-- `route/v1`: route, language, English query and named cards.
+- `route/v2`: resolve follow-ups from bounded history, then return route, language, self-contained English intent and named cards. `route/v1` remains available for comparison.
 - `decompose/v1`: one to three retrieval queries.
 - `answer/v2`: grounded claims from rules and optionally verified cards.
+- `review/v1`: evidence verdict, factual objections and at most three follow-up queries.
+- `repair/v1`: correction using bounded updated evidence and the recorded objections.
 - `card_tools/v2`: tool selection and catalogue limitations.
 - `resolve_cards/v1`: resolve supplied names before reasoning about an interaction.
 - `card_reply/v1`: final structured card reply from collected evidence.

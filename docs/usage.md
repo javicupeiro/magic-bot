@@ -13,7 +13,7 @@ otherwise create one from `.env.example`. Never put keys in command arguments.
 - `answer-rules`: simple bilingual RAG baseline without cards or graph routing.
 - `card-catalogue`: direct HTTP client without a model.
 - `card-chat`: only the card subgraph, using real model-selected tools.
-- `magic-chat`: full routing, cards and rules workflow.
+- `magic-chat`: full routing, cards, rules and bounded answer review.
 
 All commands support `--help`. Data/index defaults are relative to the repository
 root. The current PDF default is `data/game_rules/MagicCompRules_20260417.pdf`;
@@ -29,6 +29,23 @@ uv run --locked magic-chat 'Find Lightning Bolt' --events
 uv run --locked magic-chat 'Can I use ninjutsu after first-strike damage?' -k 3
 ```
 
+Each invocation starts a new stored conversation unless `--conversation-id` is
+supplied. Read its ID from `Conversation:` in normal output, `conversation_id` in
+`--json`, or the first `--events` object. Reuse the same SQLite file after restart:
+
+```sh
+uv run --locked magic-chat 'Busca criaturas elfo verdes.' --conversation-id elves
+uv run --locked magic-chat '¿y que cueste uno?' --conversation-id elves
+# A different ID starts with no previous filters.
+uv run --locked magic-chat '¿y que cueste uno?' --conversation-id separate
+```
+
+`--memory-db` selects the SQLite file (default
+`data/conversations/checkpoints.sqlite`). `--history-budget` limits serialized
+recent messages plus the current question (default 8,000 characters), independently
+of the evidence budget. Full history stays stored. See
+[conversation memory](conversation-memory.md) for the Python lifecycle and limits.
+
 Rules need the ingested index and embedding/model credentials. A card-only route
 does not open Chroma. Options include `--db`, `--collection`, `--version`, `-k`,
 `--max-calls`, `--max-pages`, `--context-budget`, `--method vector|hybrid`,
@@ -38,12 +55,20 @@ Vector remains the default after the measured comparison.
 `benchmark-retrieval --method both --output data/retrieval/local-comparison.json`
 saves a paired comparison with source changes, recall, latency and context size.
 
-Defaults: five semantic hits per query and kind, four tool calls, three HTTP pages
+Defaults: twenty vector hits per query and kind, four tool calls, three HTTP pages
 per lookup, and 24,000 serialized evidence characters. Rejected tool requests count
 toward the call budget. Up to ten calls may be configured. There is no overall
 wall-clock deadline yet.
 
-Normal output prints the answer, main-node summaries, tool exchanges and citations.
+Rules answers now pass citation validation and model evidence review. A rejection
+can spend one additional retrieval round (up to three distinct English queries,
+300 characters each), repair the draft, then validate and review again. Persistent
+rejection ends with abstention. `answer-rules` remains the unreviewed baseline.
+
+Normal output prints the answer, conversation ID, main-node summaries, tool exchanges and citations.
+Review summaries expose brief factual objections and the additional-round count.
+Inspect `reviews`, `candidate_draft`, `validation_error`, `repair_queries` and
+`additional_retrievals` in `--json`.
 `--json` prints internal state for local debugging, including native messages.
 `--events` instead prints real completed node names as the graph executes; it is
 not a second execution and does not print the final answer. Do not publish raw

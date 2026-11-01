@@ -5,9 +5,9 @@ prepares a rules/glossary index, answers grounded questions in English or Spanis
 and queries the live card API through native LangGraph tools.
 
 The current implementation includes PDF ingestion, retrieval, grounded answers,
-card catalogue tools and a chat workflow. Hybrid retrieval, answer review,
-persistent conversations, tracing and the web UI remain planned. Each current
-CLI request starts a fresh turn.
+card catalogue tools, vector/hybrid retrieval and a chat workflow with bounded
+answer review and persistent local conversations. Tracing and the web UI remain
+planned. Omitting a conversation ID starts a new conversation.
 
 ## Start locally
 

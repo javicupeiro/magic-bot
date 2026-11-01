@@ -8,8 +8,9 @@ from string import Template
 from typing import Mapping
 
 PROMPT_VERSIONS = {
-    "normalize": "v1", "answer": "v2", "route": "v1", "decompose": "v1",
+    "normalize": "v1", "answer": "v2", "route": "v2", "decompose": "v1",
     "card_tools": "v2", "resolve_cards": "v1", "card_reply": "v1",
+    "review": "v2", "repair": "v2",
 }
 
 PROMPTS = Path(__file__).parents[1] / "prompts"
