@@ -6,6 +6,7 @@ and the callbacks the graph actually receives.
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 import sys
 import unittest
 from unittest.mock import Mock, patch
@@ -16,7 +17,7 @@ from langchain_core.messages import AIMessage
 
 from backend.cards.mtg_api import MtgApiClient
 from backend.common.prompts import PROMPT_VERSIONS
-from backend.common.tracing import summarize_turn
+from backend.common.tracing import _ExportStatus, _LangfuseSession, summarize_turn, trace_turn
 from backend.generation.answers import AnswerDraft, Claim
 from backend.generation.llm import LLMConfig
 from backend.workflow.graph import QuestionWorkflow
@@ -243,3 +244,36 @@ class TracingTests(unittest.TestCase):
         self.assertNotIn("messages", payload)
         self.assertEqual(payload["prompts"]["route"]["sha256"], "abc")
         self.assertIsNone(payload["error"])
+
+    def test_export_failure_without_exception_does_not_claim_recorded(self):
+        """Cover our export adapter, including mixed batches and sticky failures."""
+        from opentelemetry.sdk.trace.export import SpanExportResult
+
+        exporter = Mock()
+        exports = _ExportStatus(exporter)
+        first = SimpleNamespace(context=SimpleNamespace(trace_id=1))
+        second = SimpleNamespace(context=SimpleNamespace(trace_id=2))
+        exporter.export.return_value = SpanExportResult.FAILURE
+        exports.export([first])
+        exporter.export.return_value = SpanExportResult.SUCCESS
+        exports.export([first, second])
+        session = _LangfuseSession(Mock(), SimpleNamespace(last_trace_id=format(1, "032x")), {}, exports)
+        client = SimpleNamespace(open=lambda **kw: session, flush=lambda: None)
+        with trace_turn(session_id="conversation", name="turn", metadata={}, client=client) as turn:
+            pass
+        self.assertEqual(turn.report.status, "missing")
+        self.assertEqual(turn.report.detail, "Langfuse export failed or unconfirmed")
+        session._handler.last_trace_id = format(2, "032x")
+        with trace_turn(session_id="another-conversation", name="turn", metadata={}, client=client) as turn:
+            pass
+        self.assertEqual(turn.report.status, "recorded")
+        self.assertIsNone(exports.consume(format(2, "032x")))
+
+        exporter.export.side_effect = RuntimeError("sensitive transport error")
+        with self.assertRaises(RuntimeError):
+            exports.export([first])
+        self.assertFalse(exports.consume(format(1, "032x")))
+        # A flush with no observed spans (e.g. sampling disabled) is not success.
+        with trace_turn(session_id="conversation", name="turn", metadata={}, client=client) as turn:
+            pass
+        self.assertEqual(turn.report.status, "missing")

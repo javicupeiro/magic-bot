@@ -19,7 +19,7 @@ from backend.retrieval.retrieval import SearchResult
 from backend.workflow.context import message_size, select_history
 from backend.workflow.graph import QuestionWorkflow
 from backend.workflow.memory import conversation_turn
-from backend.workflow.state import AnswerReview, Decomposition, RouteDecision
+from backend.workflow.state import Decomposition, EvidenceReview, RouteDecision
 
 
 class ConversationMemoryTests(unittest.TestCase):
@@ -118,8 +118,8 @@ class ConversationMemoryTests(unittest.TestCase):
                 Decomposition(queries=["rules"]),
                 AnswerDraft(can_answer=True, claims=[Claim(text="Evidence.", source_ids=["100.1"])],
                             assumptions=[]),
-                AnswerReview(supported=True, unsupported_claims=[], missing_information=[],
-                             followup_queries=[])]
+                EvidenceReview(supported=True, unsupported_claims=[], missing_information=[],
+                               followup_queries=[], action="approve")]
             workflow.answer("Explain rules", conversation_id="rules")
             restarted, llm = self.workflow(database)
             restarted.history_budget = message_size(HumanMessage("Next")) + 10
@@ -132,6 +132,7 @@ class ConversationMemoryTests(unittest.TestCase):
                 self.assertIsInstance(loaded["context"][0].references[0], Reference)
                 self.assertIsInstance(loaded["draft"], AnswerDraft)
                 self.assertIsInstance(loaded["citations"][0], Citation)
+                self.assertIsInstance(loaded["review"], EvidenceReview)
                 for _ in range(4):
                     result = restarted.answer("Next", conversation_id="rules")
                     self.assertEqual(result["history"], [])

@@ -16,12 +16,16 @@ Short scripts flush before the turn context exits, so a process that ends
 immediately still sends the pending batch.
 """
 
+import base64
+from collections import OrderedDict
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
+from functools import lru_cache
 import os
 import sys
 import time
+from threading import Lock
 
 from dotenv import load_dotenv
 from langchain_core.callbacks import BaseCallbackHandler
@@ -31,8 +35,8 @@ from langchain_core.callbacks import BaseCallbackHandler
 class TraceReport:
     """Outcome of one turn. ``detail`` is a short safe label, never a secret or payload.
 
-    status is ``disabled`` when tracing is off, ``recorded`` when a trace was
-    opened, and ``missing`` when tracing was requested but could not be finished.
+    status is ``disabled`` when tracing is off, ``recorded`` after successful
+    export, and ``missing`` when tracing could not be completed or confirmed.
     """
 
     status: str
@@ -112,6 +116,9 @@ class _ActiveTurn:
             return
         try:
             payload = summarize_turn(state, rules_edition=self.rules_edition, error=error)
+            for key in ("model", "reasoning_effort"):
+                if payload[key] is None:
+                    payload[key] = self.session.metadata.get(key)
             self.session.finish(payload)
         except Exception as exc:
             self.mark_missing(exc)
@@ -302,7 +309,7 @@ def client_from_env():
         if _true_flag(flag):
             raise TracingUnavailable("missing Langfuse keys")
         return None
-    return _LangfuseClient()
+    return _client(public, secret, os.getenv("LANGFUSE_BASE_URL", "https://cloud.langfuse.com"))
 
 
 @contextmanager
@@ -335,6 +342,9 @@ def trace_turn(*, session_id: str, name: str, metadata: dict, client=None):
         if opened:
             try:
                 client.flush()
+                verify = getattr(turn.session, "verify_export", None)
+                if verify is not None:
+                    verify()
             except Exception as exc:
                 turn.mark_missing(exc)
         _current.reset(token)
@@ -369,19 +379,22 @@ class _LangfuseRetrieval:
         if payload["error"]:
             update["level"] = "ERROR"
             update["status_message"] = payload["error"]
-        self._observation.update(**update)
-        self._manager.__exit__(None, None, None)
+        try:
+            self._observation.update(**update)
+        finally:
+            self._manager.__exit__(None, None, None)
 
 
 class _LangfuseSession:
     """Langfuse callback plus the explicit retrieval spans for one turn."""
 
-    def __init__(self, langfuse, handler, metadata):
+    def __init__(self, langfuse, handler, metadata, exports):
         self._langfuse = langfuse
         self._handler = handler
         self.metadata = metadata
         self.callbacks = [handler]
         self._trace_id = None
+        self._exports = exports
 
     @property
     def trace_id(self):
@@ -406,25 +419,98 @@ class _LangfuseSession:
         self._langfuse.update_current_span(**update)
         self._trace_id = getattr(self._handler, "last_trace_id", None)
 
+    def verify_export(self):
+        """Check this trace's actual exporter result after flushing the SDK queue.
+
+        OpenTelemetry reports HTTP/auth/network failures as a return value, not
+        necessarily an exception from flush(). Missing evidence is also a failure:
+        a disabled sampler or broken callback must not claim a recorded trace.
+        """
+        if self._exports.consume(self.trace_id) is not True:
+            raise TracingUnavailable("Langfuse export failed or unconfirmed")
+
+
+class _ExportStatus:
+    """Observe export results without changing SDK spans, batching or retries.
+
+    A batch can contain several concurrent turns, and a turn can span several
+    batches. Failure is sticky per trace. Keep only 1024 recent outcomes so an
+    interrupted caller cannot leave an unbounded registry behind.
+    """
+
+    def __init__(self, exporter):
+        self.exporter = exporter
+        self._outcomes = OrderedDict()
+        self._lock = Lock()
+
+    def export(self, spans):
+        """Remember success/failure for each trace, including exporter exceptions."""
+        from opentelemetry.sdk.trace.export import SpanExportResult
+
+        successful = False
+        try:
+            result = self.exporter.export(spans)
+            successful = result is SpanExportResult.SUCCESS
+            return result
+        finally:
+            with self._lock:
+                for span in spans:
+                    trace_id = format(span.context.trace_id, "032x")
+                    self._outcomes[trace_id] = self._outcomes.get(trace_id, True) and successful
+                    self._outcomes.move_to_end(trace_id)
+                while len(self._outcomes) > 1024:
+                    self._outcomes.popitem(last=False)
+
+    def consume(self, trace_id):
+        """Remove a completed turn's result; None means export was not observed."""
+        with self._lock:
+            return self._outcomes.pop(trace_id, None)
+
+    def shutdown(self):
+        """Let the SDK close its normal HTTP exporter."""
+        self.exporter.shutdown()
+
+    def force_flush(self, timeout_millis=30000):
+        """Delegate the optional exporter flush protocol."""
+        return self.exporter.force_flush(timeout_millis)
+
 
 class _LangfuseClient:
     """Create the native callback only after keys are known to be present."""
 
-    def __init__(self):
-        from langfuse import get_client
+    def __init__(self, public, secret, base_url):
+        from langfuse import Langfuse
         from langfuse.langchain import CallbackHandler
-        self._langfuse = get_client()
+        from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+
+        # Use the SDK's documented custom-exporter hook. Authentication and a
+        # bounded timeout must be explicit when supplying our own exporter.
+        authorization = base64.b64encode(f"{public}:{secret}".encode()).decode("ascii")
+        self._exports = _ExportStatus(OTLPSpanExporter(
+            endpoint=f"{base_url.rstrip('/')}/api/public/otel/v1/traces",
+            headers={"Authorization": f"Basic {authorization}", "x-langfuse-ingestion-version": "4"},
+            timeout=5,
+        ))
+        self._langfuse = Langfuse(public_key=public, secret_key=secret, base_url=base_url,
+                                  span_exporter=self._exports)
         self._handler_type = CallbackHandler
+        self._public = public
 
     def open(self, *, session_id, name, metadata):
         """One handler per turn so sessions are not mixed across conversations."""
         flat = {key: value for key, value in metadata.items() if isinstance(value, str) and value}
-        return _LangfuseSession(self._langfuse, self._handler_type(), {
+        return _LangfuseSession(self._langfuse, self._handler_type(public_key=self._public), {
             "langfuse_session_id": session_id,
             "langfuse_trace_name": name,
             **flat,
-        })
+        }, self._exports)
 
     def flush(self):
         """Send the batch before a short script exits."""
         self._langfuse.flush()
+
+
+@lru_cache(maxsize=1)
+def _client(public, secret, base_url):
+    """Reuse the client/exporter pair across turns, as Langfuse shares resources."""
+    return _LangfuseClient(public, secret, base_url)

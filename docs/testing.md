@@ -31,6 +31,17 @@ an ambiguous name and a question with insufficient evidence. Inspect sources and
 active prompt versions. Live checks cost provider tokens and should be explicit.
 The current refactor is verified offline; it does not establish live model quality.
 
+## Langfuse tracing
+
+Run deterministic checks with `LANGFUSE_TRACING_ENABLED=false` so local Langfuse
+credentials do not send test fixtures to the real project. `test_tracing.py`
+injects its own clients or overrides that setting for configuration checks.
+It covers session/turn correlation, prompt provenance, retrieval and tool ids,
+telemetry failures, and exporter failures returned without exceptions. The
+export-result adapter is tested with fake spans and a fake transport; the suite
+does not test the Langfuse SDK or UI. See [observability](observability.md) for
+the recorded live verification and inspection procedure.
+
 Retrieval quality cases and saved results remain in `data/retrieval/`. Do not
 replace the original baseline when comparing a new method. A missed relevant
 rule is an evaluation observation, not automatically a failing unit test.

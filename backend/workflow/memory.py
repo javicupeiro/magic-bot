@@ -17,7 +17,7 @@ from backend.cards.replies import CardReply
 from backend.generation.answers import AnswerDraft, Citation, Claim
 from backend.ingestion.documents import Reference
 from backend.retrieval.retrieval import SearchResult
-from backend.workflow.state import AnswerReview, Decomposition, RouteDecision
+from backend.workflow.state import AnswerReview, Decomposition, EvidenceReview, RouteDecision
 
 DEFAULT_MEMORY_PATH = Path("data/conversations/checkpoints.sqlite")
 _LOCK_GUARD = Lock()
@@ -54,7 +54,7 @@ def open_memory(path):
     path.parent.mkdir(parents=True, exist_ok=True)
 
     types = [CardReply, AnswerDraft, Citation, Claim, Reference, SearchResult,
-             AnswerReview, Decomposition, RouteDecision]
+             AnswerReview, EvidenceReview, Decomposition, RouteDecision]
     serializer = JsonPlusSerializer(allowed_msgpack_modules=types)
     connection = sqlite3.connect(str(path), check_same_thread=False)
     try:
