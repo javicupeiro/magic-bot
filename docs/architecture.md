@@ -36,6 +36,17 @@ card records and validated citations come from that same execution. Rendering us
 DOM `textContent`, not external HTML. History is reloaded via GET and never used
 to infer missing steps. See [the UI guide](usage.md#web-chat-and-execution-panel).
 
+`frontend/workflow.js` draws the fixed horizontal main graph and optional card
+subgraph with decorative SVG edges and native HTML node buttons. Its topology
+mirrors `build_graph()` and `build_card_graph()`; changes to those edges must also
+update the map. `chat.js` passes its existing turn occurrences directly to the
+map and keeps the selected-node filter. Same-graph consecutive starts mark
+observed transitions; parent/child events are separated before matching edges.
+Visit counters and the chronological trail preserve repetitions rather than
+replacing a previous visit. Node buttons survive updates to retain focus and
+scroll positions. Collapse/expand is presentation state only. History reload
+clears the map because the public history endpoint does not retain events.
+
 The HTTP entry point is `backend.api.app:app`. A POST creates one synchronous
 workflow in an executor thread, consuming native updates and callbacks from
 `QuestionWorkflow.stream()` through a bounded queue. `EventAdapter` publishes

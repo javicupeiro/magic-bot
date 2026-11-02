@@ -69,6 +69,49 @@ reloading the entire page discards them. Completed messages remain in SQLite.
 For a completely offline browser demo and repeatable checks, see
 [UI verification](testing.md#web-ui-checks).
 
+## Horizontal workflow map
+
+The **Turn workflow** map spans both columns above the chat and execution panel.
+It keeps fixed node positions and stays visible as the page scrolls on sufficiently
+tall viewports. Collapse it with **Hide map**; events continue updating while it
+is closed. On short viewports it scrolls with the page to leave room for the chat.
+On small screens the graph scrolls horizontally, preserving readable node labels,
+while the chat and execution panels stack vertically.
+
+Green nodes have completed, amber nodes are running, gray nodes have not been
+observed, purple highlights recovery and red marks failed/interrupted visits.
+Each visited node shows a count such as `×2`. Status symbols, accessible labels,
+per-visit details and the **Observed order** trail complement the colors. The
+active-node pulse respects the reduced-motion preference. Repeated executions
+reuse the same button without moving it or stealing keyboard focus.
+
+The main map includes `check_cards`, clarification, both card exits and both
+recovery paths: `review → retrieve_more → repair → validate`, and local
+`review → repair → validate`. **Card subgraph** expands the actual
+prepare/model/tools/collect/finish graph, including its model/tool loop and both
+ways of reaching finish. The enclosing cards step can run at the same time as
+its children; it is not a transition into each child. Only consecutive observed
+starts within the same graph highlight an edge. Skipped or missing steps are not
+filled in. Every completed route eventually reaches `remember`, which appends the
+user/assistant messages to persistent history. The direct `check_cards → remember`
+edge is for card-only searches or interactions blocked by unresolved/ambiguous
+card evidence. A verified rules interaction takes `check_cards → decompose` and
+reaches `remember` later through `finalize`, after generation/review/recovery.
+An in-progress `repair` therefore does not yet show a completed `remember`. The terminal **End** lights only when the final `answer` event arrives;
+it does not mean the response is factually approved.
+
+Select a map node or trail visit to filter the existing execution list by that
+node. Every occurrence retains its own duration, tool events and reported token
+counts. An unvisited node explicitly says it has not run. Use **Show all steps**
+to clear the filter. The trail records start order, including overlapping parent
+and child occurrences; its arrows are chronology, whereas map arrows are graph
+transitions. No model-generated explanation or additional API call is needed.
+
+The map resets on a new turn, conversation switch or history reload. Completed
+turns retain their map until then. Historical HTTP messages still contain prose
+only: previous execution events are not persisted or reconstructed. No change
+was made to the HTTP contract, graph policy or conversation storage.
+
 ## Choose the command for the layer you want to inspect
 
 - `pdf-to-text`: extraction only, no LLM.
