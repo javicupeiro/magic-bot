@@ -1,6 +1,10 @@
 # Allow only image inputs. In particular, never send .env, databases or host venv.
 **
 !Dockerfile
+!Dockerfile.render
+!deploy/
+!deploy/index_bundle.py
+!deploy/rules.jsonl.gz
 !pyproject.toml
 !uv.lock
 !.python-version

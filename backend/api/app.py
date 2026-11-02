@@ -5,6 +5,7 @@ checkpoints and the existing process-local turn lock remain the source of truth.
 """
 
 import asyncio
+import os
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from importlib.metadata import version
@@ -66,7 +67,8 @@ def create_app(*, memory_path=DEFAULT_MEMORY_PATH, workflow_factory=None):
             connection.execute("CREATE TABLE IF NOT EXISTS api_conversations (id TEXT PRIMARY KEY)")
         # Capacity bounds concurrent executions; waiting HTTP tasks do not occupy
         # the event loop. Shutdown waits for in-flight synchronous calls to return.
-        app.state.executor = ThreadPoolExecutor(max_workers=8, thread_name_prefix="chat")
+        app.state.executor = ThreadPoolExecutor(
+            max_workers=int(os.getenv("MAGIC_BOT_MAX_WORKERS", "8")), thread_name_prefix="chat")
         app.state.stops = set()
         try:
             yield

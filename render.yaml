@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: magic-bot-demo
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile.render
+    healthCheckPath: /health
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_LLM_MODEL
+        value: gpt-6-luna
+      - key: OPENAI_REASONING_EFFORT
+        value: high
+      - key: LANGFUSE_TRACING_ENABLED
+        value: "false"
+      - key: MAGIC_BOT_MAX_WORKERS
+        value: "1"

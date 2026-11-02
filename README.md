@@ -14,6 +14,7 @@ execution panel shows observed graph steps, durations and reported token usage.
 - [Usage](docs/usage.md): run the demo, configure it and verify behavior.
 - [Architecture](docs/architecture.md): system boundaries, graphs and design decisions; links to component references.
 - [Evaluation](docs/evaluation.md): measured results, evidence and limitations.
+- [Render Free demo](deploy/README.md): deploy the API and UI with a bundled rules index.
 
 Detailed component guides live under `docs/reference/`; supporting measurements
 live under `docs/experiments/`. Local development notes in `docs/internal/` are
@@ -374,4 +375,5 @@ This is a local demo without authentication or distributed conversation locks.
 Generation and review use the same model, so review can repeat the original error.
 Evidence is bounded and may omit necessary rules. The final delivery trace was
 exported, but its visual inspection remains pending authorized Langfuse access.
-Production deployment, pgvector, human escalation and custom cards are proposals.
+The optional Render Free deployment is a demo with temporary conversations;
+production deployment, pgvector, human escalation and custom cards are proposals.
