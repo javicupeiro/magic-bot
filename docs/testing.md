@@ -19,6 +19,9 @@ uv run --locked python -m unittest discover -s tests -p test_workflow.py -v
 - Tool tests own native call/result messages, schema rejection, budgets and evidence checks.
 - Workflow tests check routing, actual subgraph event visibility, interaction handoff, bounded reference expansion, evidence approval/repair/abstention
   and the single additional retrieval round. They do not repeat every HTTP/tool edge case.
+- HTTP integration tests check native SSE order/correlation, tool and model usage
+  callbacks, public output allowlisting, persisted history, contract failures and
+  busy conversations using simulated dependencies. See [HTTP verification](http-api.md#verification-notes).
 
 Prefer one regression for a real risk over many implementation-shaped assertions.
 No coverage percentage target, CSS snapshot suite or exact LLM wording tests.

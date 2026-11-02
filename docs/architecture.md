@@ -15,6 +15,7 @@ model; LangGraph decides when those operations run.
 - `backend/cards/agent.py`: the native card-tool subgraph, also used by `card-chat`.
 - `backend/cards/replies.py`: structured card reply and evidence records.
 - `backend/workflow/`: routing, rule nodes, persistent conversations, context selection and CLI.
+- `backend/api/`: local FastAPI routes, public schemas and native-event-to-SSE adaptation.
 - `backend/common/prompts.py`: the reusable loader and active prompt versions.
 - `backend/common/tracing.py`: optional Langfuse session, trace and retrieval spans.
 - `backend/prompts/`: versioned Markdown instructions for all model steps.
@@ -23,6 +24,14 @@ model; LangGraph decides when those operations run.
 The future UI will live in `frontend/`, separate from `backend/`. It does not exist
 yet. We keep the current functional packages rather than introducing a second
 `src/` hierarchy only to match the original plan.
+
+The HTTP entry point is `backend.api.app:app`. A POST creates one synchronous
+workflow in an executor thread, consuming native updates and callbacks from
+`QuestionWorkflow.stream()` through a bounded queue. `EventAdapter` publishes
+only allowlisted fields and retains that same execution's final result. SQLite
+owns conversation registration and checkpoints; the existing conversation lock
+rejects competing HTTP turns with 409. See [HTTP API](http-api.md) for the contract,
+resource lifetime and cooperative disconnect limits.
 
 ## Preparing knowledge
 

@@ -245,7 +245,7 @@ class QuestionWorkflow:
             if turn is not None:
                 self.trace_report = turn.report
 
-    def stream(self, question: str, *, conversation_id=None):
+    def stream(self, question: str, *, conversation_id=None, callbacks=None, blocking=True):
         """Yield native updates while holding resources and the conversation lock.
 
         Close the iterator if stopping early. Only a completed turn reaches
@@ -253,18 +253,22 @@ class QuestionWorkflow:
         Supply an ID from new_conversation() to resume an event-only session.
         The same trace wraps this stream. Do not invoke the graph again to
         rebuild the result; read trace_report after the iterator finishes.
+        callbacks add observers alongside tracing. blocking=False rejects an
+        occupied conversation instead of waiting, for HTTP conflict responses.
         """
         if self.graph is None:
             with self:
-                yield from self.stream(question, conversation_id=conversation_id)
+                yield from self.stream(question, conversation_id=conversation_id,
+                                       callbacks=callbacks, blocking=blocking)
             return
         conversation_id = conversation_id if conversation_id is not None else self.new_conversation()
         turn = None
         try:
-            with conversation_turn(self.memory_path, conversation_id):
+            with conversation_turn(self.memory_path, conversation_id, blocking=blocking):
                 with self._tracing(conversation_id) as turn:
                     try:
                         state, config = self._prepare_turn(question, conversation_id)
+                        config["callbacks"] = list(callbacks or [])
                         yield from self.graph.stream(state, turn.apply(config), stream_mode="updates", subgraphs=True)
                     except Exception as exc:
                         turn.fail(exc)

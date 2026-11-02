@@ -114,8 +114,8 @@ A tracing failure is printed to stderr and does not change the answer. See
 
 Prompts record their versions and hashes. Claims refer to retrieved source IDs;
 Python builds excerpts and citation markers from stored records. Invalid IDs
-cause abstention, not fabricated citations. All current conversations are single
-turns, despite the `chat` command names.
+cause abstention, not fabricated citations. Use `--conversation-id` in the CLI or
+reuse an HTTP conversation ID for persistent follow-up turns.
 
 See [architecture](architecture.md), [ingestion](ingestion-and-retrieval.md),
 [catalogue semantics](catalogue.md) and [prompt conventions](prompts.md).
@@ -138,3 +138,40 @@ per-query metrics, randomized configuration order (seed 42), and aggregate recal
 MRR, hit/full-recall rates, latency percentiles and context sizes. Lexical corpus
 validation/build is measured separately. This is a retrieval experiment, not a
 measurement of generated answer quality or workflow prompt size.
+
+## HTTP chat and SSE
+
+Start the local API (one worker):
+
+```sh
+uv run --locked uvicorn backend.api.app:app --host 127.0.0.1 --port 8000 --workers 1
+```
+
+In another terminal, create a conversation and copy the returned UUID:
+
+```sh
+curl -sS -X POST http://127.0.0.1:8000/conversations
+CONVERSATION_ID='<returned UUID>'
+curl -N -H 'Content-Type: application/json' \
+  -d '{"message":"¿Qué es dañar primero?"}' \
+  "http://127.0.0.1:8000/conversations/$CONVERSATION_ID/messages"
+curl -sS "http://127.0.0.1:8000/conversations/$CONVERSATION_ID/messages"
+```
+
+While the streaming POST is active, send another POST to the same URL from a
+third terminal: it returns 409 `conversation_busy`. Different conversations can
+run concurrently. Use the same ID for follow-up questions and after a restart.
+Real questions use paid model calls and may require the existing rules index.
+Do not add curl retry flags: a lost connection can happen after a turn is stored.
+See [HTTP API](http-api.md) for schemas, events, errors and cancellation limits.
+
+Basic inspection commands (no model calls):
+
+```sh
+curl -sS http://127.0.0.1:8000/
+curl -sS http://127.0.0.1:8000/health
+curl -sS http://127.0.0.1:8000/version
+curl -sS http://127.0.0.1:8000/conversations
+```
+
+Open `http://127.0.0.1:8000/docs` in a browser for interactive API help.

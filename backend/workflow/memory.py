@@ -25,15 +25,20 @@ _TURN_LOCKS = {}
 
 
 @contextmanager
-def conversation_turn(database, conversation_id):
-    """Hold a reference-counted per-conversation lock until execution/stream ends."""
+def conversation_turn(database, conversation_id, *, blocking=True):
+    """Hold the turn lock; nonblocking callers receive ConversationBusy on conflict."""
     key = (str(Path(database).resolve()), conversation_id)
     with _LOCK_GUARD:
         lock, users = _TURN_LOCKS.get(key, (Lock(), 0))
         _TURN_LOCKS[key] = (lock, users + 1)
     try:
-        with lock:
+        acquired = lock.acquire(blocking=blocking)
+        if not acquired:
+            raise ConversationBusy("Conversation already has an active turn")
+        try:
             yield
+        finally:
+            lock.release()
     finally:
         with _LOCK_GUARD:
             _, users = _TURN_LOCKS[key]
@@ -41,6 +46,10 @@ def conversation_turn(database, conversation_id):
                 del _TURN_LOCKS[key]
             else:
                 _TURN_LOCKS[key] = (lock, users - 1)
+
+
+class ConversationBusy(RuntimeError):
+    """A nonblocking caller attempted to enter an already active conversation."""
 
 
 @contextmanager

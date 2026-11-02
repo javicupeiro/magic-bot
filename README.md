@@ -6,7 +6,8 @@ and queries the live card API through native LangGraph tools.
 
 The current implementation includes PDF ingestion, retrieval, grounded answers,
 card catalogue tools, vector/hybrid retrieval, a chat workflow with bounded
-answer review, persistent local conversations, and optional Langfuse tracing.
+answer review, persistent local conversations, optional Langfuse tracing, and a
+local FastAPI backend with POST SSE execution events.
 The web UI remains planned. Omitting a conversation ID starts a new conversation.
 
 ## Start locally
@@ -51,6 +52,7 @@ individual command options.
 - [Prompt conventions](docs/prompts.md): shared loader, explicit versions and hashes.
 - [Testing](docs/testing.md): focused tests versus manual quality evaluation.
 - [Tracing](docs/observability.md): sessions, traces, and what is sent to Langfuse.
+- [HTTP API](docs/http-api.md): conversations, SSE events, errors and disconnects.
 
 ## Verify locally
 
