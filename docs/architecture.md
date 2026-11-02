@@ -276,8 +276,13 @@ volumes plus the source PDF directory read-only. Data preparation remains explic
 no model call or ingestion is part of the image build or server startup.
 `evals/delivery.py` exercises the existing workflow, reopening SQLite for follow-ups
 and using shared measurement wrappers. It does not add another graph or
-change runtime policy. See [usage](usage.md#docker-clean-delivery-and-persistent-data)
+change runtime policy. See [the README](../README.md#run-with-docker)
 for Docker commands and persistence.
+
+The optional [Render demo](../deploy/README.md) uses `Dockerfile.render` and
+`render.yaml`. That image restores a bundled rules index at build time without
+provider calls. Unlike Compose, it uses ephemeral conversation storage and does
+not include the parsed JSONL needed for hybrid retrieval.
 
 ## Further reading
 

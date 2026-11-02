@@ -8,15 +8,14 @@ uv run --locked uvicorn backend.api.app:app --host 127.0.0.1 --port 8000 --worke
 ```
 
 FastAPI supplies request validation, OpenAPI and streaming responses. Uvicorn is
-its ASGI server. These are the only new dependencies; there is no extra model or
-external service. `/docs` exposes the route documentation. Real questions retain
+its ASGI server. `/docs` exposes the route documentation. Real questions retain
 the CLI's provider configuration, charges, rules index and catalogue dependencies.
 The frontend does not receive credentials or select graph/provider settings.
 
 ## Basic endpoints
 
 - `GET /` returns a welcome message and relative links to documentation, health,
-  version, conversations and the [web UI](../usage.md#web-chat-and-execution-panel) at `/ui/`.
+  version, conversations and the [web UI](../../README.md#open-and-close-the-ui) at `/ui/`.
 - `GET /health` returns `{"status":"ok"}` when the HTTP application responds.
   It does not probe SQLite, the rules index, the model or external services.
 - `GET /version` returns `{"name":"magic-bot","version":"0.1.0"}` (using the
@@ -106,8 +105,11 @@ A client must treat EOF without `answer` or terminal `error` as an uncertain res
 `create_app()` injects a workflow factory for deterministic checks. Each POST
 creates a fresh workflow and runs its synchronous iterator in one executor
 thread, leaving the ASGI event loop available. The default index opens lazily
-inside that thread only when retrieval needs it. Eight threads bound concurrent
-execution; excess requests wait for capacity. This is a local demo, not a public
+inside that thread only when retrieval needs it. `MAGIC_BOT_MAX_WORKERS` in the
+server process environment sets the thread count (default 8; Render image 1).
+This setting is read at startup, before a workflow loads `.env`; export it in the
+shell for local Uvicorn execution. Compose injects `.env` into the container.
+Excess requests wait for capacity. This is a local demo, not a public
 admission-control design.
 
 `QuestionWorkflow.stream(callbacks=[adapter], blocking=False)` merges the public
@@ -156,11 +158,11 @@ execution, safe output, persistent history after restart, contract errors, busy
 conflicts, failed turns and recovery. A blocked fake model also proves history
 and a competing POST remain responsive while the first turn runs.
 
-The full suite command ran 88 tests: 87 passed; the existing
-`test_probes_are_isolated_and_empty_context_restores_retrieval` failed because its
-mock runs out of responses in `repair` (`StopIteration`). Running the evaluation
-suite against `HEAD`'s original `QuestionWorkflow` reproduced the same failure;
-the HTTP changes do not fix or hide that unrelated evaluation fixture.
+Run the full offline suite using the [README test command](../../README.md#tests-and-evaluation).
+On November 2, 2026, all 90 tests passed, including the review-evaluation fixture
+previously reported as failing during HTTP implementation.
+These HTTP checks cover the transport contract; they do not measure live ruling
+quality or provider availability.
 
 A real Uvicorn server on an ephemeral loopback port was exercised with `curl`
 using a temporary database and a blocked simulated model: conversation creation,

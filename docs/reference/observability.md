@@ -363,7 +363,7 @@ Framework helper nodes can add intermediate observations.
 
 Deterministic tracing checks live in `tests/test_tracing.py`. They cover
 correlation, metadata, configuration and export failures without losing answers.
-See [usage](../usage.md#verification) for the test command and [evaluation results](../evaluation.md)
+See [the README](../../README.md#tests-and-evaluation) for the test command and [evaluation results](../evaluation.md)
 for the delivery evidence and pending visual inspection. Earlier live measurements
 and API inspection notes are in [observability validation](../experiments/observability-validation.md).
 

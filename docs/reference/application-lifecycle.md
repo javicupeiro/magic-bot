@@ -189,14 +189,15 @@ Detailed tracing remains a separate optional backend concern.
 
 The graph and external clients are synchronous. Running their iterator directly
 inside the async HTTP handler would block unrelated HTTP work. Instead, the app
-owns an eight-thread executor; each submitted turn runs in one worker while the
+owns a thread executor configured by the process environment variable
+`MAGIC_BOT_MAX_WORKERS` (default 8; Render image 1); each turn runs in one worker while the
 ASGI loop consumes its queue asynchronously. Ordinary synchronous listing/history
 handlers can also run without waiting for that graph's model request.
 
 Every turn has its own workflow resources, event adapter, stop signal and bounded
 queue. The queue limits buffered events for a slow consumer and applies backpressure
 to the producer. It is in-process communication, not an external job broker or a
-durable event log. Eight executor threads bound active turns, not the total number
+durable event log. The configured executor threads bound active turns, not the total number
 of HTTP requests waiting for execution capacity; no global admission limit or
 end-to-end deadline is implemented.
 

@@ -127,9 +127,7 @@ this is not an HTTP load test with three server workers.
 | [`experiments/answer_review.py`](../evals/experiments/answer_review.py) | Optional comparison of the first validated draft, a stop after first review, and the final result from the same execution. | A different paired-report schema; live APIs. It does not execute follow-up setup turns. |
 | [`experiments/review_metrics.py`](../evals/experiments/review_metrics.py) and [`review_report.py`](../evals/experiments/review_report.py) | Aggregate and render the optional paired experiment, keeping natural cases and controlled probes separate. | Offline metrics and HTML; they do not grade this delivery report. |
 
-`evals/internal/` contains ignored exploratory development scripts. None is
-required to execute the delivered bank or regenerate these figures. The retrieval
-plotter is also separate: its [experiment](experiments/retrieval-parameter-sweep.md)
+The retrieval plotter is separate: its [experiment](experiments/retrieval-parameter-sweep.md)
 measures source retrieval, not the final answers assessed here.
 
 The delivery runner measures resource use and provenance automatically. It does

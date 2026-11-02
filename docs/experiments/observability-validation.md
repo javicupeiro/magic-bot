@@ -9,7 +9,7 @@ establish current remote endpoint availability.
 
 The tracing-stage check ran **78 versioned tests**, all passing,
 with tracing disabled for local fixtures. This is a historical stage result; the
-[final delivery](../evaluation.md) records the later full-suite result.
+[README](../../README.md#tests-and-evaluation) provides the current full-suite command.
 The five tracing tests cover correlation, metadata, prompts, searches/tools,
 disabled/incomplete configuration, end/flush failures without lost answers,
 propagated retrieval errors, safe summary fields, failure-without-exception,

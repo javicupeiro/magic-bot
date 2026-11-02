@@ -197,3 +197,11 @@ only two Spanish questions, cannot represent all rules or real user traffic.
 The five PNGs are in `docs/experiments/images/retrieval/` and use relative Markdown links.
 They are derived from saved JSON without new model calls. The original portable
 HTML remains a historical experiment artifact.
+
+```sh
+uv run --locked --with matplotlib python -m evals.experiments.plot_retrieval \
+  --input data/retrieval/parameter-sweep.json \
+  --output docs/experiments/images/retrieval
+```
+
+Matplotlib is supplied for this command only; it is not a backend dependency.

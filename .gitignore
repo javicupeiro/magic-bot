@@ -1,4 +1,3 @@
-docs/tickets/
 docs/internal/
 .env
 .env.*
@@ -16,14 +15,4 @@ tmp/
 data/processed/*.manifest.json
 data/processed/*.jsonl
 data/processed/*.report.json
-
-# Local answer-review data and historical experiment notes.
-data/answer_review/
-data/answer_review_v2/
-docs/experiments/answer-review-evaluation.md
-docs/experiments/answer-review-ablation.md
-docs/experiments/images/answer-review/
-docs/experiments/images/answer-review-v2/
-
-# Local exploratory evaluation scripts.
 evals/internal/

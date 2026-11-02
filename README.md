@@ -13,14 +13,13 @@ execution panel shows observed graph steps, durations and reported token usage.
 
 ## Documentation
 
-- [Usage](docs/usage.md): run the demo, configure it and verify behavior.
+- [Local setup](#run-locally-with-uv), [Docker](#run-with-docker) and [CLI commands](#cli-commands): run and verify the application.
 - [Architecture](docs/architecture.md): system boundaries, graphs and design decisions; links to component references.
 - [Evaluation](docs/evaluation.md): measured results, evidence and limitations.
 - [Render Free demo](deploy/README.md): deploy the API and UI with a bundled rules index.
 
 Detailed component guides live under `docs/reference/`; supporting measurements
-live under `docs/experiments/`. Local development notes in `docs/internal/` are
-excluded from delivery.
+live under `docs/experiments/`.
 
 ## Prerequisites
 
@@ -46,7 +45,26 @@ if [ ! -f .env ]; then cp .env.example .env; fi
 
 Edit `.env` and replace the `OPENAI_API_KEY` placeholder. Keep credentials on the
 backend. [.env.example](.env.example) lists model, embedding and optional tracing
-settings; existing process environment variables take precedence over `.env`.
+settings. Local Python commands load `.env` without overriding existing process
+variables. Compose injects `.env` through `env_file`; use `docker compose run -e`
+for a one-off container override.
+
+`OPENAI_LLM_MODEL` defaults to `gpt-6-luna`, with
+`OPENAI_REASONING_EFFORT=high`. The embedding defaults are
+`text-embedding-3-small` and 1,536 dimensions. Retrieval uses the embedding
+configuration stored in the index; changing `.env` does not migrate an existing
+index. See [ingestion and retrieval](docs/reference/ingestion-and-retrieval.md)
+before rebuilding it with different settings.
+
+`MAGIC_BOT_MAX_WORKERS` sets concurrent API execution threads (default 8), rather
+than Uvicorn processes. For local execution, set it in the server's process
+environment:
+
+```sh
+MAGIC_BOT_MAX_WORKERS=1 uv run --locked uvicorn backend.api.app:app --workers 1
+```
+
+Compose forwards this setting from `.env`; the Render image defaults to 1.
 
 The source PDF is included at `data/game_rules/MagicCompRules_20260417.pdf`.
 Run the commands below from the repository root so relative data paths resolve.
@@ -265,8 +283,8 @@ The commands above explicitly use port 8015 so Docker can run alongside uv on
 8000. Without `MAGIC_BOT_PORT`, Compose defaults to port 8000.
 `docker compose down -v` also deletes the
 knowledge and conversation volumes; use it only for an intentional data reset.
-See [Docker and persistence](docs/usage.md#docker-clean-delivery-and-persistent-data)
-for the complete verification procedure.
+The [saved container check](data/delivery/container-check.json) records an
+HTTP/SSE turn and history recovery after container recreation.
 
 ## Test the HTTP API
 
@@ -340,7 +358,8 @@ All entry points support `--help`. The full workflow accepts `--method vector|hy
 `-k`, `--context-budget`, `--history-budget`, `--max-calls`, `--max-pages` and
 `--memory-db`. Defaults are 20 retrieval hits per query and kind, 24,000 evidence
 characters, 8,000 history characters, four card-tool requests and three HTTP pages
-per lookup. Character budgets are not token budgets. See the [command guide](docs/usage.md).
+per lookup. Character budgets are not token budgets. Use `magic-chat --help`
+for the complete option list, including index paths, edition and hybrid candidates.
 
 ## Tests and evaluation
 
