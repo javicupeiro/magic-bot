@@ -74,7 +74,9 @@ class EventAdapter(BaseCallbackHandler):
             metadata = kwargs.get("metadata") or {}
             name = kwargs.get("name")
             namespace = metadata.get("langgraph_checkpoint_ns", "")
-            nested = namespace.startswith("cards:")
+            # The compiled subgraph's enclosing cards run already has a cards:
+            # namespace too. Only its internal nodes belong to the nested graph.
+            nested = namespace.startswith("cards:") and name != "cards"
             allowed = CARD_STEPS if nested else ROOT_STEPS
             if name != metadata.get("langgraph_node") or name not in allowed:
                 return

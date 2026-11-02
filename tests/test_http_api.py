@@ -79,6 +79,18 @@ class HttpApiTests(unittest.TestCase):
             self.assertEqual([item["step_id"] for item in started if item["step"] != "cards"],
                              [item["step_id"] for item in completed if item["step"] != "cards"])
             self.assertEqual({item["step_id"] for item in started}, {item["step_id"] for item in completed})
+            card_starts = [item for item in started if item["step"] == "cards"]
+            card_completions = [item for item in completed if item["step"] == "cards"]
+            self.assertEqual(len(card_starts), 1)
+            self.assertEqual(len(card_completions), 1)
+            self.assertEqual(card_starts[0]["step_id"], card_completions[0]["step_id"])
+            # Exercise real LangGraph callbacks: a scripted UI fixture cannot
+            # catch a parent subgraph being mistaken for one of its children.
+            children = [item for item in received if item.get("step", "").startswith("cards.")]
+            self.assertTrue(all(card_starts[0]["sequence"] < item["sequence"]
+                                < card_completions[0]["sequence"] for item in children))
+            self.assertEqual([item["step"] for item in started if not item["step"].startswith("cards.")],
+                             ["route", "cards", "check_cards", "remember"])
             self.assertIn("cards.tools", [item["step"] for item in completed])
             tools = [item for item in received if item["type"] == "tool"]
             self.assertEqual([item["status"] for item in tools], ["started", "completed"])

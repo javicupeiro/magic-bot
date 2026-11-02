@@ -28,7 +28,7 @@ class FrontendDeliveryTests(unittest.TestCase):
         with TemporaryDirectory() as directory:
             with TestClient(create_app(memory_path=Path(directory) / "memory.sqlite")) as client:
                 self.assertEqual(client.get("/").json()["links"]["ui"], "/ui/")
-                for asset in ("", "chat.js", "stream.js", "styles.css"):
+                for asset in ("", "chat.js", "stream.js", "workflow.js", "styles.css"):
                     self.assertEqual(client.get(f"/ui/{asset}").status_code, 200)
                 self.assertIn('type="module"', client.get("/ui/").text)
                 self.assertEqual(client.get("/ui/.env").status_code, 404)
@@ -91,12 +91,24 @@ def browser_fixture():
                      "cards.model", "cards.finish", "check_cards"]
             if message == "/clarify":
                 steps = ["route", "clarify", "remember"]
-            elif message != "/cards":
-                steps += ["decompose", "retrieve", "generate", "validate", "review", "retrieve_more",
+            elif message == "/local-repair":
+                steps = ["route", "decompose", "retrieve", "expand", "generate", "validate",
+                         "review", "repair", "validate", "review", "finalize", "remember"]
+            elif message == "/cards":
+                steps += ["remember"]
+            else:
+                steps += ["decompose", "retrieve", "expand", "generate", "validate", "review", "retrieve_more",
                           "repair", "validate", "review", "finalize", "remember"]
+            cards_step_id = None
             for index, step in enumerate(steps):
+                if step == "check_cards" and cards_step_id is not None:
+                    yield event("step_completed", step="cards", step_id=cards_step_id, duration_ms=80)
                 step_id = str(index)
                 yield event("step_started", step=step, step_id=step_id)
+                await asyncio.sleep(.08)
+                if step == "cards":
+                    cards_step_id = step_id
+                    continue
                 if step == "cards.tools":
                     yield event("tool", step=step, step_id=step_id, tool="get_card_by_name", status="started")
                     yield event("tool", step=step, step_id=step_id, tool="get_card_by_name", status="completed", duration_ms=0)

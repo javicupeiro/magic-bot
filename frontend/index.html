@@ -21,6 +21,29 @@
     <button id="reload" type="button">Reload history</button>
   </nav>
   <p id="notice" class="notice" role="status" aria-live="polite">Loading conversations…</p>
+  <details id="workflow" class="panel workflow-panel" open>
+    <summary class="workflow-heading">
+      <span class="workflow-heading-title">Turn workflow</span>
+      <span id="workflow-status" class="tag" role="status">Waiting for events</span>
+      <span id="workflow-toggle-label" class="workflow-toggle-label">Hide map</span>
+    </summary>
+    <div class="workflow-body">
+      <div id="workflow-main" class="workflow-scroll" tabindex="0" role="region" aria-label="Main workflow map, scroll horizontally to explore"></div>
+      <div class="workflow-legend" aria-label="Map legend">
+        <span class="legend-completed">✓ Completed</span><span class="legend-running">● Running</span>
+        <span>○ Not visited</span><span class="legend-recovery">↶ Recovery</span><span class="legend-failed">! Failed / interrupted</span>
+        <button id="workflow-card-toggle" type="button" aria-expanded="false" aria-controls="workflow-card-section">Card subgraph</button>
+      </div>
+      <div id="workflow-card-section" hidden>
+        <p class="workflow-caption">Cards subgraph · model/tool cycles are separate visits.</p>
+        <div id="workflow-cards" class="workflow-scroll" tabindex="0" role="region" aria-label="Cards subgraph map, scroll horizontally to explore"></div>
+      </div>
+      <div class="workflow-trail-row"><span class="workflow-trail-label">Observed order</span>
+        <span id="workflow-trail-empty">No execution events yet.</span>
+        <ol id="workflow-trail" aria-label="Observed step visits"></ol>
+      </div>
+    </div>
+  </details>
   <main>
     <section class="panel chat-panel" aria-labelledby="chat-heading">
       <div class="panel-heading"><div><span class="eyebrow">01 / CONVERSATION</span><h2 id="chat-heading">Ask about Magic</h2></div><span id="chat-status" class="tag">Ready</span></div>
@@ -37,6 +60,10 @@
       <dl class="metrics"><div><dt>Total duration</dt><dd id="duration">Not available</dd></div><div><dt>Reported tokens</dt><dd id="tokens">Not available</dd></div></dl>
       <p id="usage-note" class="panel-note">Tokens count model calls only. Parent and child durations overlap and are never added.</p>
       <p id="current" role="status">No active step.</p>
+      <div class="execution-selection">
+        <p id="step-selection" role="status">Showing all observed steps.</p>
+        <button id="show-all-steps" type="button" hidden>Show all steps</button>
+      </div>
       <ol id="steps" class="steps"></ol>
       <details class="contract-note"><summary>Available execution details</summary><p>Tool arguments, subqueries, review verdicts and trace links are not published by this HTTP contract. Review and retry steps appear when observed; their private contents are not inferred.</p></details>
       <div id="evidence"></div>

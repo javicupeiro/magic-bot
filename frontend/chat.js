@@ -1,8 +1,13 @@
 // Own small UI state; routing, evidence selection and conversation memory stay on the server.
 import { readEvents, requestJSON } from './stream.js';
+import { mountWorkflowMap } from './workflow.js';
 
 const element = id => document.getElementById(id);
-const state = { conversation: null, messages: [], busy: false, turn: null };
+const state = { conversation: null, messages: [], busy: false, turn: null, selectedStep: null };
+const updateWorkflowMap = mountWorkflowMap(name => {
+  state.selectedStep = name;
+  renderExecution();
+});
 const labels = {
   route: 'Route question', cards: 'Cards · enclosing subgraph', check_cards: 'Check card evidence',
   'cards.prepare': 'Cards · prepare', 'cards.model': 'Cards · model', 'cards.tools': 'Cards · tools',
@@ -98,20 +103,33 @@ function renderExecution() {
   element('usage-note').textContent = `${usage.length} model usage event(s); sum of reported totals only, possibly partial. Parent and child durations overlap and are never added.`;
   const active = turn?.steps.filter(step => step.status === 'Running') ?? [];
   element('current').textContent = active.length ? `Current: ${active.map(step => labels[step.name] ?? step.name).join(' / ')}` : 'No active step.';
+  const selected = state.selectedStep;
+  const selectedVisits = turn?.steps.filter(step => step.name === selected) ?? [];
+  element('step-selection').textContent = selected
+    ? `${selected} · ${selectedVisits.length} observed visit(s).${selectedVisits.length ? ' Durations are shown per visit.' : ' This step has not run in this turn.'}`
+    : 'Showing all observed steps. Select a map node to inspect its visits.';
+  element('show-all-steps').hidden = !selected;
+  const visits = new Map();
   for (const step of turn?.steps ?? []) {
+    const visit = (visits.get(step.name) ?? 0) + 1;
+    visits.set(step.name, visit);
     if (!step.element) {
       step.element = node('li');
       element('steps').append(step.element);
     }
+    step.element.hidden = Boolean(selected && step.name !== selected);
+    step.element.dataset.step = step.name;
     step.element.className = `step${step.name.startsWith('cards.') ? ' child' : ''}${step.status === 'Running' ? ' active' : ''}${step.status === 'Failed' ? ' failed' : ''}`;
     step.element.replaceChildren(node('div', labels[step.name] ?? step.name, 'step-title'),
-      node('p', `${step.status} · ${formatDuration(step.duration)}`, 'step-meta'));
+      node('p', `Visit ${visit} · ${step.status} · ${formatDuration(step.duration)}`, 'step-meta'));
     for (const tool of step.tools) step.element.append(node('p', `Tool: ${tool.tool} · ${tool.status} · ${formatDuration(tool.duration_ms)} · Arguments: not available`, 'step-meta'));
     for (const call of step.usage) step.element.append(node('p', `Model tokens · input: ${formatTokens(call.input_tokens)} · output: ${formatTokens(call.output_tokens)} · total: ${formatTokens(call.total_tokens)}`, 'step-meta'));
   }
+  updateWorkflowMap(turn, selected);
 }
 
 function resetExecution(status) {
+  state.selectedStep = null;
   state.turn = status ? { status, steps: [], usage: [], sequence: 0, id: null } : null;
   element('steps').replaceChildren();
   element('evidence').replaceChildren();
@@ -234,6 +252,10 @@ async function sendMessage(event) {
   }
 }
 
+element('show-all-steps').addEventListener('click', () => {
+  state.selectedStep = null;
+  renderExecution();
+});
 element('composer').addEventListener('submit', sendMessage);
 element('message').addEventListener('keydown', event => {
   if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
