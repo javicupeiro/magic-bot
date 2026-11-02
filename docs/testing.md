@@ -104,7 +104,7 @@ Open `http://127.0.0.1:8014/ui/`, then run in that page's browser developer cons
 await (await import('/_checks.js')).runChecks()
 ```
 
-The function throws on failure or returns `{passed: true, posts: 7, checks: ...}`.
+The function throws on failure or returns `{passed: true, posts: 8, checks: ...}`.
 Reload the page before rerunning. This is a browser check invoked manually, not
 part of Python unittest discovery; it uses the actual UI modules and real fetch
 requests to simulated endpoints. No Playwright dependency or CSS snapshots are
@@ -128,3 +128,34 @@ modules/check files. Full Python discovery ran 89 tests: 88 passed, with the
 already documented `test_probes_are_isolated_and_empty_context_restores_retrieval`
 error (`StopIteration` in the evaluation fixture). The UI changes do not alter
 that model fixture; see the earlier [HTTP verification notes](http-api.md#verification-notes).
+
+## Horizontal workflow map verification
+
+The browser fixture/check now also exercises the actual map module, without model
+or catalogue calls. The scripted interaction includes `expand` and correctly
+keeps the enclosing cards step active until its children finish. Checks cover
+running/second visits, stable node positions and keyboard focus during SSE,
+card-tool loops, interaction versus card-only exits, clarification, recovery with
+additional retrieval, local repair without additional retrieval, node selection,
+per-visit detail filtering, expanding the card graph, updates while collapsed,
+history reset and failed/interrupted nodes. Eight POSTs are expected, including
+the local-repair case, with no duplicate submissions.
+
+Verification on 2026-11-02: browser check returned `passed: true, posts: 8` via the
+T3 preview evaluator. Native Chrome visual inspection confirmed the horizontal
+map, sticky behavior, selected review's two visits and the 390 px layout with
+horizontal map scrolling and vertically stacked panels. Preview screenshot
+capture timed out twice, so native Chrome supplied visual inspection. JavaScript
+syntax checks passed for `workflow.js`, `chat.js` and `frontend_check.js`; full
+Python discovery passed 90 tests. The map uses the existing SSE contract; no
+paid model requests were needed for these UI checks.
+
+
+The real HTTP/LangGraph integration test also requires exactly one enclosing
+`cards` start/completion pair, with all child events between them and the card-only
+root sequence `route → cards → check_cards → remember`. This protects a discovered
+namespace regression: the compiled enclosing run itself has a `cards:` checkpoint
+namespace, so it must not be filtered as an internal card node. A browser run
+against the real graph with simulated model/catalogue dependencies confirmed
+that `cards`, its incoming/outgoing edges and the direct `remember` exit light
+correctly. All 90 Python tests pass after the fix.
