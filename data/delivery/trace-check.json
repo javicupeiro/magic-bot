@@ -1,0 +1,10 @@
+{
+  "status": "recorded",
+  "trace_id": "38c51ffda3875de476d00499b2e072e4",
+  "project_id": "cmvz5iaik01luad0jtbdafvam",
+  "trace_url": "https://cloud.langfuse.com/project/cmvz5iaik01luad0jtbdafvam/traces/38c51ffda3875de476d00499b2e072e4",
+  "api_readback_status": 410,
+  "browser_opened": true,
+  "browser_access": false,
+  "browser_message": "You do not have access to this trace"
+}

@@ -1,0 +1,166 @@
+{
+  "report_sha256": "ff5aa0096d461bd26ea0a3c205bbc309d3323e10a0b8fa1b0eddc06e8da2b5a7",
+  "reviewer": "Implementation agent; exploratory, not blind human validation",
+  "cases": [
+    {
+      "case_id": "mana",
+      "citation_provenance_valid": true,
+      "evidence_support": "supported",
+      "rules_quality": "correct",
+      "task_success": true,
+      "note": "Final answer meets the predeclared criteria against the saved evidence."
+    },
+    {
+      "case_id": "first-strike-es",
+      "citation_provenance_valid": true,
+      "evidence_support": "supported",
+      "rules_quality": "correct",
+      "task_success": true,
+      "note": "Final answer meets the predeclared criteria against the saved evidence."
+    },
+    {
+      "case_id": "turn-phases-es",
+      "citation_provenance_valid": true,
+      "evidence_support": "supported",
+      "rules_quality": "correct",
+      "task_success": true,
+      "note": "Final answer meets the predeclared criteria against the saved evidence."
+    },
+    {
+      "case_id": "summoning",
+      "citation_provenance_valid": true,
+      "evidence_support": "supported",
+      "rules_quality": "correct",
+      "task_success": true,
+      "note": "Final answer meets the predeclared criteria against the saved evidence."
+    },
+    {
+      "case_id": "stack",
+      "citation_provenance_valid": true,
+      "evidence_support": "supported",
+      "rules_quality": "correct",
+      "task_success": false,
+      "note": "Rules explanation is correct and supported, but the English question was routed with language=es and answered in Spanish."
+    },
+    {
+      "case_id": "unclear",
+      "citation_provenance_valid": null,
+      "evidence_support": "not_applicable",
+      "rules_quality": "clarification",
+      "task_success": true,
+      "note": "Requests missing game situation."
+    },
+    {
+      "case_id": "tournament-gap",
+      "citation_provenance_valid": null,
+      "evidence_support": "not_applicable",
+      "rules_quality": "safe_abstention",
+      "task_success": true,
+      "note": "Does not invent tournament policy; no factual rules answer claimed."
+    },
+    {
+      "case_id": "ninjutsu-timing",
+      "citation_provenance_valid": true,
+      "evidence_support": "partial",
+      "rules_quality": "incomplete",
+      "task_success": false,
+      "note": "Correct yes conclusion, but does not explain the priority window after first-strike damage or explicitly explain the unblocked-attacker prerequisite. Retrieved 702.49a contains the prerequisite; conclusion alone does not meet all criteria."
+    },
+    {
+      "case_id": "indestructible-zero",
+      "citation_provenance_valid": true,
+      "evidence_support": "supported",
+      "rules_quality": "correct",
+      "task_success": true,
+      "note": "Final answer meets the predeclared criteria against the saved evidence."
+    },
+    {
+      "case_id": "blocked-no-trample",
+      "citation_provenance_valid": true,
+      "evidence_support": "supported",
+      "rules_quality": "correct",
+      "task_success": true,
+      "note": "Final answer meets the predeclared criteria against the saved evidence."
+    },
+    {
+      "case_id": "trample-deathtouch",
+      "citation_provenance_valid": true,
+      "evidence_support": "supported",
+      "rules_quality": "correct",
+      "task_success": true,
+      "note": "Final answer meets the predeclared criteria against the saved evidence."
+    },
+    {
+      "case_id": "verified-card",
+      "citation_provenance_valid": true,
+      "evidence_support": "supported",
+      "rules_quality": "correct",
+      "task_success": true,
+      "note": "Final answer meets the predeclared criteria against the saved evidence."
+    },
+    {
+      "case_id": "damage-response",
+      "citation_provenance_valid": true,
+      "evidence_support": "supported",
+      "rules_quality": "correct",
+      "task_success": true,
+      "note": "Final answer meets the predeclared criteria against the saved evidence."
+    },
+    {
+      "case_id": "source-removed",
+      "citation_provenance_valid": true,
+      "evidence_support": "supported",
+      "rules_quality": "correct",
+      "task_success": true,
+      "note": "113.7a supports the conclusion. 605.3b is an unnecessary mana-ability contrast rather than direct evidence for the asked non-mana ability."
+    },
+    {
+      "case_id": "glossary",
+      "citation_provenance_valid": true,
+      "evidence_support": "supported",
+      "rules_quality": "correct",
+      "task_success": true,
+      "note": "Final answer meets the predeclared criteria against the saved evidence."
+    },
+    {
+      "case_id": "card-name",
+      "citation_provenance_valid": null,
+      "evidence_support": "catalogue_supported",
+      "rules_quality": "correct",
+      "task_success": true,
+      "note": "Names and filters checked against saved live tool exchanges; card-only route stops without rules retrieval."
+    },
+    {
+      "case_id": "rules-followup",
+      "citation_provenance_valid": true,
+      "evidence_support": "supported",
+      "rules_quality": "correct",
+      "task_success": true,
+      "note": "Final answer meets the predeclared criteria against the saved evidence."
+    },
+    {
+      "case_id": "missing-card",
+      "citation_provenance_valid": null,
+      "evidence_support": "not_applicable",
+      "rules_quality": "safe_no_match",
+      "task_success": true,
+      "note": "Reports empty catalogue results without claiming proof of nonexistence; no fabricated card. Does not literally ask a follow-up; accepted against declared safe-identity criteria."
+    },
+    {
+      "case_id": "card-filters",
+      "citation_provenance_valid": null,
+      "evidence_support": "catalogue_supported",
+      "rules_quality": "correct",
+      "task_success": true,
+      "note": "Names and filters checked against saved live tool exchanges; card-only route stops without rules retrieval. Three-page result explicitly marked partial; no exhaustive catalogue claim. Green means contains G, not monocolor."
+    },
+    {
+      "case_id": "card-followup",
+      "citation_provenance_valid": null,
+      "evidence_support": "catalogue_supported",
+      "rules_quality": "correct",
+      "task_success": true,
+      "note": "Names and filters checked against saved live tool exchanges; card-only route stops without rules retrieval. SQLite reopened between turns; subtype Elf, color G retained and cmc changed to numeric 1. All listed records have cmc=1; three-page tool result complete."
+    }
+  ]
+}

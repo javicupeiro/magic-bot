@@ -1,0 +1,15 @@
+# Allow only image inputs. In particular, never send .env, databases or host venv.
+**
+!Dockerfile
+!pyproject.toml
+!uv.lock
+!.python-version
+!README.md
+!backend/
+!backend/**
+!frontend/
+!frontend/**
+**/.env
+**/.env.*
+**/__pycache__/
+**/*.py[cod]

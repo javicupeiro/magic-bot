@@ -84,8 +84,9 @@ The history cap is separate from the 24,000-character evidence budget: history
 cannot consume the evidence allowance or grow to fill the provider window.
 Instructions, structured schemas and output need additional capacity. These are
 application character limits, not a tokenizer or an exact provider context-window
-reservation; select conservative limits for the configured model. Existing card
-payloads can exceed the evidence allowance, as documented in the review guide.
+reservation; select conservative limits for the configured model. Current policy compacts verified-card
+evidence and blocks interactions that still exceed the allowance; full catalogue
+exchanges are retained separately for diagnosis.
 Only interpretation receives history; later stages use the compact resolved
 intent, rather than repeatedly sending the entire conversation.
 

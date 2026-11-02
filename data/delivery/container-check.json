@@ -1,0 +1,34 @@
+{
+  "conversation_id": "5ea5364a-f2ce-403f-b9d7-827d5ef48785",
+  "history_before": {
+    "conversation_id": "5ea5364a-f2ce-403f-b9d7-827d5ef48785",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is first strike?"
+      },
+      {
+        "role": "assistant",
+        "content": "First strike is a keyword ability that modifies the combat damage step, letting a creature assign combat damage in the earlier damage step. If an attacking or blocking creature has first strike or double strike as that step begins, only creatures with either ability assign damage in that step. A second combat damage step follows: remaining attackers and blockers that had neither ability when the first step began, and remaining attackers and blockers that currently have double strike, can assign damage then. [mtg:April%2017%2C%202026:glossary:First%20Strike] [mtg:April%2017%2C%202026:rule:702.7a] [mtg:April%2017%2C%202026:rule:702.7b]"
+      }
+    ]
+  },
+  "history_after": {
+    "conversation_id": "5ea5364a-f2ce-403f-b9d7-827d5ef48785",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is first strike?"
+      },
+      {
+        "role": "assistant",
+        "content": "First strike is a keyword ability that modifies the combat damage step, letting a creature assign combat damage in the earlier damage step. If an attacking or blocking creature has first strike or double strike as that step begins, only creatures with either ability assign damage in that step. A second combat damage step follows: remaining attackers and blockers that had neither ability when the first step began, and remaining attackers and blockers that currently have double strike, can assign damage then. [mtg:April%2017%2C%202026:glossary:First%20Strike] [mtg:April%2017%2C%202026:rule:702.7a] [mtg:April%2017%2C%202026:rule:702.7b]"
+      }
+    ]
+  },
+  "health": {
+    "status": "ok"
+  },
+  "ui_served": true,
+  "recreation_preserved_history": true
+}

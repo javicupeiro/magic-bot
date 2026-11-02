@@ -16,7 +16,7 @@ The frontend does not receive credentials or select graph/provider settings.
 ## Basic endpoints
 
 - `GET /` returns a welcome message and relative links to documentation, health,
-  version, conversations and the [web UI](usage.md#web-chat-and-execution-panel) at `/ui/`.
+  version, conversations and the [web UI](../usage.md#web-chat-and-execution-panel) at `/ui/`.
 - `GET /health` returns `{"status":"ok"}` when the HTTP application responds.
   It does not probe SQLite, the rules index, the model or external services.
 - `GET /version` returns `{"name":"magic-bot","version":"0.1.0"}` (using the

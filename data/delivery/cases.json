@@ -1,0 +1,258 @@
+{
+  "version": "April 17, 2026",
+  "rubric": "20 scored questions plus two setup turns. Reuse prior natural cases; no controlled injection. Criteria predeclared. Citation membership, evidence support and rules correctness must be judged separately. Agent review is exploratory, not blind human validation.",
+  "cases": [
+    {
+      "id": "first-strike-es",
+      "question": "¿Qué es dañar primero y cómo cambia el daño de combate?",
+      "cohort": "natural",
+      "expectation": "answer",
+      "reference_ids": [
+        "mtg:April%2017%2C%202026:rule:702.7a",
+        "mtg:April%2017%2C%202026:rule:702.7b"
+      ],
+      "criteria": [
+        "Explain first strike and its earlier combat damage step.",
+        "Explain which creatures assign damage in the second step; do not equate first strike with double strike."
+      ]
+    },
+    {
+      "id": "mana",
+      "question": "When does unused mana empty?",
+      "cohort": "natural",
+      "expectation": "answer",
+      "reference_ids": [
+        "mtg:April%2017%2C%202026:rule:106.4",
+        "mtg:April%2017%2C%202026:rule:500.5"
+      ],
+      "criteria": [
+        "Unused mana empties at the end of each step and phase by default."
+      ]
+    },
+    {
+      "id": "ninjutsu-timing",
+      "question": "Si una criatura con dañar primero hace daño y después la devuelvo a la mano para activar ninjutsu, ¿la criatura que entra sin dañar primero ni dañar dos veces hace daño en el segundo paso?",
+      "cohort": "natural",
+      "expectation": "answer",
+      "reference_ids": [
+        "mtg:April%2017%2C%202026:rule:510.4",
+        "mtg:April%2017%2C%202026:rule:702.49a",
+        "mtg:April%2017%2C%202026:rule:702.49b",
+        "mtg:April%2017%2C%202026:rule:510.3",
+        "mtg:April%2017%2C%202026:rule:702.49c"
+      ],
+      "criteria": [
+        "Explain the priority window after first-strike damage and the unblocked-attacker requirement.",
+        "The incoming attacker without first/double strike can assign damage in the second step; do not invent a requirement to have existed in the first step."
+      ]
+    },
+    {
+      "id": "turn-phases-es",
+      "question": "¿Cuáles son las fases de un turno, en orden?",
+      "cohort": "natural",
+      "expectation": "answer",
+      "reference_ids": [
+        "mtg:April%2017%2C%202026:rule:500.1"
+      ],
+      "criteria": [
+        "List beginning, precombat main, combat, postcombat main and ending in that order."
+      ]
+    },
+    {
+      "id": "summoning",
+      "question": "Can a creature without haste attack or activate an ability with the tap symbol in its cost on the turn I first gain control of it?",
+      "cohort": "natural",
+      "expectation": "answer",
+      "reference_ids": [
+        "mtg:April%2017%2C%202026:rule:302.6",
+        "mtg:April%2017%2C%202026:rule:702.10b",
+        "mtg:April%2017%2C%202026:rule:702.10c"
+      ],
+      "criteria": [
+        "Normally neither attack nor activate its tap-symbol ability unless continuously controlled since the most recent turn began.",
+        "Distinguish the continuous-control restriction from merely being tapped or untapped."
+      ]
+    },
+    {
+      "id": "stack",
+      "question": "In what order do spells and abilities on the stack resolve?",
+      "cohort": "natural",
+      "expectation": "answer",
+      "reference_ids": [
+        "mtg:April%2017%2C%202026:rule:405.2",
+        "mtg:April%2017%2C%202026:rule:405.5"
+      ],
+      "criteria": [
+        "Last in, first out: the top object resolves first when all players pass in succession."
+      ]
+    },
+    {
+      "id": "tournament-gap",
+      "question": "What are the tournament penalties for arriving late to a match?",
+      "cohort": "natural",
+      "expectation": "abstain",
+      "reference_ids": [],
+      "criteria": [
+        "The supplied Comprehensive Rules do not establish tournament tardiness penalties.",
+        "Abstain or explicitly request the relevant tournament policy; do not invent penalty schedules."
+      ]
+    },
+    {
+      "id": "unclear",
+      "question": "¿Eso se puede hacer?",
+      "cohort": "natural",
+      "expectation": "clarify",
+      "reference_ids": [],
+      "criteria": [
+        "Request the missing action or game situation instead of inventing a ruling."
+      ]
+    },
+    {
+      "id": "verified-card",
+      "question": "Does Lightning Bolt destroy an otherwise undamaged 3/3 creature with indestructible? Assume no other relevant effects.",
+      "cohort": "natural",
+      "expectation": "answer",
+      "reference_ids": [
+        "mtg:April%2017%2C%202026:rule:702.12b",
+        "mtg:April%2017%2C%202026:rule:704.5g"
+      ],
+      "criteria": [
+        "Resolve Lightning Bolt using complete verified card text.",
+        "Three damage is lethal for a 3/3, but indestructible prevents its destruction from lethal damage."
+      ]
+    },
+    {
+      "id": "indestructible-zero",
+      "question": "Does indestructible save a creature whose toughness becomes 0? Assume no other effects.",
+      "cohort": "natural",
+      "expectation": "answer",
+      "reference_ids": [
+        "mtg:April%2017%2C%202026:rule:704.5f",
+        "mtg:April%2017%2C%202026:rule:702.12b"
+      ],
+      "criteria": [
+        "No. It is put into its owner graveyard as a state-based action, not destroyed."
+      ]
+    },
+    {
+      "id": "blocked-no-trample",
+      "question": "My attacking 5/5 without trample is blocked by a single creature. The blocker leaves combat before combat damage. Does my attacker deal its combat damage to the defending player?",
+      "cohort": "natural",
+      "expectation": "answer",
+      "reference_ids": [
+        "mtg:April%2017%2C%202026:rule:509.1h",
+        "mtg:April%2017%2C%202026:rule:510.1c"
+      ],
+      "criteria": [
+        "No. It remains blocked and without trample assigns no combat damage when no blockers remain."
+      ]
+    },
+    {
+      "id": "trample-deathtouch",
+      "question": "An attacking 5/5 with trample and deathtouch is blocked by an otherwise ordinary 3/3. Can I assign 1 damage to the blocker and 4 to the defending player?",
+      "cohort": "natural",
+      "expectation": "answer",
+      "reference_ids": [
+        "mtg:April%2017%2C%202026:rule:702.19b",
+        "mtg:April%2017%2C%202026:rule:702.2c"
+      ],
+      "criteria": [
+        "Yes. One damage assigned by a deathtouch source counts as lethal for trample assignment."
+      ]
+    },
+    {
+      "id": "damage-response",
+      "question": "¿Puedo responder entre la asignación del daño de combate y el momento de infligirlo?",
+      "cohort": "natural",
+      "expectation": "answer",
+      "reference_ids": [
+        "mtg:April%2017%2C%202026:rule:510.2"
+      ],
+      "criteria": [
+        "No. No player gets priority between combat damage assignment and dealing it; it does not use the stack."
+      ]
+    },
+    {
+      "id": "source-removed",
+      "question": "If a creature activates an ordinary non-mana ability and is destroyed in response, does that alone remove its ability from the stack?",
+      "cohort": "natural",
+      "expectation": "answer",
+      "reference_ids": [
+        "mtg:April%2017%2C%202026:rule:113.7a"
+      ],
+      "criteria": [
+        "No. Once activated, the ability on the stack exists independently of its source."
+      ]
+    },
+    {
+      "id": "glossary",
+      "question": "What does the glossary mean by a permanent?",
+      "cohort": "natural",
+      "expectation": "answer",
+      "reference_ids": [],
+      "criteria": [
+        "Explain that a permanent is a card or token on the battlefield; preserve glossary IDs without invented rule numbers."
+      ],
+      "setup": []
+    },
+    {
+      "id": "card-name",
+      "question": "Find Lightning Bolt.",
+      "cohort": "natural",
+      "expectation": "answer",
+      "reference_ids": [],
+      "criteria": [
+        "Return verified live card records and text; do not continue to rules retrieval."
+      ],
+      "setup": []
+    },
+    {
+      "id": "card-filters",
+      "question": "Busca criaturas elfo verdes con valor de maná menor que 2.",
+      "cohort": "natural",
+      "expectation": "answer",
+      "reference_ids": [],
+      "criteria": [
+        "Use live tools with green, Elf, Creature and mana value <2; distinguish partial results from complete coverage."
+      ],
+      "setup": []
+    },
+    {
+      "id": "card-followup",
+      "question": "¿Y que cuesten exactamente uno?",
+      "cohort": "natural",
+      "expectation": "answer",
+      "reference_ids": [],
+      "criteria": [
+        "Preserve green Elf Creature filters from the preceding turn and change mana value to exactly 1."
+      ],
+      "setup": [
+        "Busca criaturas elfo verdes con valor de maná menor que 2."
+      ]
+    },
+    {
+      "id": "rules-followup",
+      "question": "¿Y si su resistencia pasa a ser cero?",
+      "cohort": "natural",
+      "expectation": "answer",
+      "reference_ids": [],
+      "criteria": [
+        "Use prior indestructible context; zero toughness puts it in the graveyard rather than destroying it."
+      ],
+      "setup": [
+        "¿Indestructible evita que una criatura muera por daño letal?"
+      ]
+    },
+    {
+      "id": "missing-card",
+      "question": "Find the card DefinitelyNotARealMagicCardXYZ123.",
+      "cohort": "natural",
+      "expectation": "clarify",
+      "reference_ids": [],
+      "criteria": [
+        "Report missing identity or ask for clarification; never invent a card or silently replace it."
+      ],
+      "setup": []
+    }
+  ]
+}

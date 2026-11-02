@@ -4,7 +4,7 @@ Run commands from the repository root after `uv sync --locked`.
 
 The command reads `data/game_rules/MagicCompRules_20260417.pdf`, preserves the original, and writes:
 
-- [data/processed/MagicCompRules_20260417.txt](../data/processed/MagicCompRules_20260417.txt): UTF-8 text with `\n\f\n` between pages. `\f` is the form feed character (U+000C). Splitting on this separator recovers pages in order, including empty pages. Rulebook TXT files are included in version control for use by the project.
+- [data/processed/MagicCompRules_20260417.txt](../../data/processed/MagicCompRules_20260417.txt): UTF-8 text with `\n\f\n` between pages. `\f` is the form feed character (U+000C). Splitting on this separator recovers pages in order, including empty pages. Rulebook TXT files are included in version control for use by the project.
 - `data/processed/MagicCompRules_20260417.manifest.json`: PDF SHA-256, edition declared in the document, page count, extractor version, pypdf version, extraction mode, character counts per page, and warnings. Generated manifests remain ignored by Git.
 
 Configurable paths:
@@ -15,7 +15,7 @@ uv run --locked pdf-to-text --input path/document.pdf --output data/processed/do
 
 You can also run `uv run --locked python -m backend.ingestion.pdf_to_text`. Without `--manifest`, the manifest uses the TXT filename with a `.manifest.json` extension. Default paths are relative to the current working directory. Outputs go in `data/processed/`, separate from the Python code. Git includes `MagicCompRules_*.txt` files in that directory; other generated outputs remain ignored.
 
-In [pdf_to_text.py](../backend/ingestion/pdf_to_text.py), `main()` resolves paths and `extract_pdf()` reads the bytes, computes the hash, extracts each page, and writes the text and manifest. It does not normalize whitespace or correct content. Empty pages, unusually short pages, and pages containing suspicious characters are preserved and reported through stderr and the manifest. These checks are heuristics and cannot detect every extraction problem. Scanned PDFs need a separate workflow; this command reports missing text without attempting OCR.
+In [pdf_to_text.py](../../backend/ingestion/pdf_to_text.py), `main()` resolves paths and `extract_pdf()` reads the bytes, computes the hash, extracts each page, and writes the text and manifest. It does not normalize whitespace or correct content. Empty pages, unusually short pages, and pages containing suspicious characters are preserved and reported through stderr and the manifest. These checks are heuristics and cannot detect every extraction problem. Scanned PDFs need a separate workflow; this command reports missing text without attempting OCR.
 
 Parse the extracted text:
 
@@ -28,7 +28,7 @@ uv run --locked python -m unittest discover -s tests -v
 
 The parser writes `data/processed/MagicCompRules_20260417.jsonl` and a `.report.json` summary. Both are reproducible generated files ignored by Git. Customize them with `--input`, `--output`, and `--report`. The edition comes from the source's effective-date declaration; `--version` overrides it or supplies a missing edition. `python -m backend.ingestion.parse_rules` provides the same CLI. `--id` regenerates the files and prints the requested document, failing if the ID is unknown.
 
-The shared contract in [documents.py](../backend/ingestion/documents.py) has `id`, `kind`, `text`, `version`, one-based physical `page_start`/`page_end`, `title`, and `references`. Each rule or subrule has `rule_number` and `parent_id`; major sections have `kind: section` and `section_number`, so references such as “section 8” have a target. Glossary entries have `term` and a null `rule_number`. Inapplicable fields are null. Rule text excludes the identifying number; glossary text excludes the term heading. Examples and source line breaks remain in the body, including continuations across pages. For rules, the title is the text following the number on its first source line.
+The shared contract in [documents.py](../../backend/ingestion/documents.py) has `id`, `kind`, `text`, `version`, one-based physical `page_start`/`page_end`, `title`, and `references`. Each rule or subrule has `rule_number` and `parent_id`; major sections have `kind: section` and `section_number`, so references such as “section 8” have a target. Glossary entries have `term` and a null `rule_number`. Inapplicable fields are null. Rule text excludes the identifying number; glossary text excludes the term heading. Examples and source line breaks remain in the body, including continuations across pages. For rules, the title is the text following the number on its first source line.
 
 IDs follow `mtg:<edition>:<kind>:<identifier>`, with edition and identifier URL-encoded losslessly. They depend on the declared edition and rule number, section number, or exact glossary term, never page position. References contain `kind`, `identifier`, `target_id`, and `resolved`. Explicit rule/section lists and numeric or letter ranges are parsed deterministically, skipping the unused subrule letters l and o. Glossary “See” links are also extracted; exact terms resolve automatically, while aliases and ambiguous lists remain in the review report.
 
@@ -151,11 +151,11 @@ vector ranking; vector mode adds no threshold, reranking or answer generation. H
 is approximate, and lexical ambiguity or short heading documents can outrank
 useful explanatory rules.
 
-[data/retrieval/queries.json](../data/retrieval/queries.json) contains twelve English/Spanish
+[data/retrieval/queries.json](../../data/retrieval/queries.json) contains twelve English/Spanish
 queries and a non-exhaustive set of manually reviewed relevant source IDs with
 reasons from the April 17, 2026 edition. The original eight cases preceded the
 initial baseline; four additional cases preceded the hybrid experiment.
-[data/retrieval/baseline.json](../data/retrieval/baseline.json) saves the initial top-5
+[data/retrieval/baseline.json](../../data/retrieval/baseline.json) saves the initial top-5
 results, including full text, pages, distances, configuration, collection size,
 timestamp and reviewed-source recall per query. Generate a separate comparison:
 
@@ -297,11 +297,11 @@ records title/body character counts. No generated-answer quality was evaluated.
 
 ### Varying result counts and candidate budgets
 
-The follow-up [parameter sweep](retrieval-parameter-sweep.md) tests k=5,8,10,20
+The follow-up [parameter sweep](../experiments/retrieval-parameter-sweep.md) tests k=5,8,10,20
 and hybrid candidate limits 20,40,80, with three rounds per configuration (576
 fresh embedding/search calls). Saved measurements are in
-[data/retrieval/parameter-sweep.json](../data/retrieval/parameter-sweep.json), with
-a [portable interactive comparison](../data/retrieval/parameter-sweep.html).
+[data/retrieval/parameter-sweep.json](../../data/retrieval/parameter-sweep.json), with
+a [portable interactive comparison](../../data/retrieval/parameter-sweep.html).
 
 The original k=5 result is limited to that configuration: vector recall rises
 from 76.39% to 94.44% at k=20, while mean serialized context grows roughly fourfold.

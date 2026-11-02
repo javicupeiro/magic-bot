@@ -54,7 +54,9 @@ def create_app(*, memory_path=DEFAULT_MEMORY_PATH, workflow_factory=None):
     using memory_path. Tests substitute deterministic dependencies here.
     """
     memory_path = Path(memory_path)
-    factory = workflow_factory or (lambda: QuestionWorkflow(LazyRetriever(), memory_path=memory_path))
+    factory = workflow_factory or (lambda: QuestionWorkflow(
+                                        LazyRetriever(),
+                                        memory_path=memory_path))
 
     @asynccontextmanager
     async def lifespan(app):
@@ -156,8 +158,11 @@ def create_app(*, memory_path=DEFAULT_MEMORY_PATH, workflow_factory=None):
             adapter = EventAdapter(identifier, put)
             try:
                 workflow = factory()
-                iterator = workflow.stream(body.message, conversation_id=identifier,
-                                           callbacks=[adapter], blocking=False)
+                iterator = workflow.stream(
+                    body.message,
+                    conversation_id=identifier,
+                    callbacks=[adapter],
+                    blocking=False)
                 try:
                     for namespace, update in iterator:
                         if stop.is_set():

@@ -1,0 +1,19 @@
+services:
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:${MAGIC_BOT_PORT:-8000}:8000"
+    # Credentials are runtime environment only; never build arguments or image files.
+    env_file: .env
+    volumes:
+      - ./data/game_rules:/app/data/game_rules:ro
+      - processed:/app/data/processed
+      - chroma:/app/data/chroma
+      - conversations:/app/data/conversations
+    init: true
+    stop_grace_period: 60s
+
+volumes:
+  processed:
+  chroma:
+  conversations:

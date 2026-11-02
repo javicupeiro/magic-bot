@@ -1,0 +1,278 @@
+{
+  "cases": [
+    {
+      "case_id": "mana",
+      "status": "ok",
+      "elapsed_ms": 11638.524292036891,
+      "model_calls": 4,
+      "calls_with_usage": 4,
+      "input_tokens": 16863,
+      "output_tokens": 379,
+      "citation_provenance_valid": true,
+      "sources": [
+        "mtg:April%2017%2C%202026:rule:106.4",
+        "mtg:April%2017%2C%202026:rule:500.5"
+      ]
+    },
+    {
+      "case_id": "first-strike-es",
+      "status": "ok",
+      "elapsed_ms": 19065.830083098263,
+      "model_calls": 4,
+      "calls_with_usage": 4,
+      "input_tokens": 15952,
+      "output_tokens": 1049,
+      "citation_provenance_valid": true,
+      "sources": [
+        "mtg:April%2017%2C%202026:rule:702.7a",
+        "mtg:April%2017%2C%202026:glossary:First%20Strike",
+        "mtg:April%2017%2C%202026:rule:510.4"
+      ]
+    },
+    {
+      "case_id": "turn-phases-es",
+      "status": "ok",
+      "elapsed_ms": 9311.286416137591,
+      "model_calls": 4,
+      "calls_with_usage": 4,
+      "input_tokens": 15429,
+      "output_tokens": 367,
+      "citation_provenance_valid": true,
+      "sources": [
+        "mtg:April%2017%2C%202026:rule:500.1"
+      ]
+    },
+    {
+      "case_id": "summoning",
+      "status": "ok",
+      "elapsed_ms": 30626.97779107839,
+      "model_calls": 4,
+      "calls_with_usage": 4,
+      "input_tokens": 15696,
+      "output_tokens": 2146,
+      "citation_provenance_valid": true,
+      "sources": [
+        "mtg:April%2017%2C%202026:rule:302.6",
+        "mtg:April%2017%2C%202026:rule:508.1a"
+      ]
+    },
+    {
+      "case_id": "stack",
+      "status": "ok",
+      "elapsed_ms": 36672.003417043015,
+      "model_calls": 6,
+      "calls_with_usage": 6,
+      "input_tokens": 34403,
+      "output_tokens": 2324,
+      "citation_provenance_valid": true,
+      "sources": [
+        "mtg:April%2017%2C%202026:rule:608.1",
+        "mtg:April%2017%2C%202026:rule:405.5",
+        "mtg:April%2017%2C%202026:rule:117.7"
+      ]
+    },
+    {
+      "case_id": "unclear",
+      "status": "ok",
+      "elapsed_ms": 2255.7574580423534,
+      "model_calls": 1,
+      "calls_with_usage": 1,
+      "input_tokens": 408,
+      "output_tokens": 105,
+      "citation_provenance_valid": null,
+      "sources": []
+    },
+    {
+      "case_id": "tournament-gap",
+      "status": "ok",
+      "elapsed_ms": 13484.495291020721,
+      "model_calls": 4,
+      "calls_with_usage": 4,
+      "input_tokens": 16516,
+      "output_tokens": 632,
+      "citation_provenance_valid": null,
+      "sources": []
+    },
+    {
+      "case_id": "ninjutsu-timing",
+      "status": "ok",
+      "elapsed_ms": 75394.4874170702,
+      "model_calls": 4,
+      "calls_with_usage": 4,
+      "input_tokens": 15740,
+      "output_tokens": 6874,
+      "citation_provenance_valid": true,
+      "sources": [
+        "mtg:April%2017%2C%202026:rule:702.49a",
+        "mtg:April%2017%2C%202026:rule:510.4",
+        "mtg:April%2017%2C%202026:glossary:Attacking%20Creature"
+      ]
+    },
+    {
+      "case_id": "indestructible-zero",
+      "status": "ok",
+      "elapsed_ms": 15165.706958156079,
+      "model_calls": 4,
+      "calls_with_usage": 4,
+      "input_tokens": 16048,
+      "output_tokens": 770,
+      "citation_provenance_valid": true,
+      "sources": [
+        "mtg:April%2017%2C%202026:rule:704.5f",
+        "mtg:April%2017%2C%202026:rule:702.12b"
+      ]
+    },
+    {
+      "case_id": "blocked-no-trample",
+      "status": "ok",
+      "elapsed_ms": 14866.866833064705,
+      "model_calls": 4,
+      "calls_with_usage": 4,
+      "input_tokens": 14804,
+      "output_tokens": 622,
+      "citation_provenance_valid": true,
+      "sources": [
+        "mtg:April%2017%2C%202026:rule:509.1h",
+        "mtg:April%2017%2C%202026:rule:510.1c"
+      ]
+    },
+    {
+      "case_id": "trample-deathtouch",
+      "status": "ok",
+      "elapsed_ms": 16040.923624997959,
+      "model_calls": 4,
+      "calls_with_usage": 4,
+      "input_tokens": 16849,
+      "output_tokens": 798,
+      "citation_provenance_valid": true,
+      "sources": [
+        "mtg:April%2017%2C%202026:rule:702.2c",
+        "mtg:April%2017%2C%202026:rule:702.19b"
+      ]
+    },
+    {
+      "case_id": "verified-card",
+      "status": "ok",
+      "elapsed_ms": 44141.443791100755,
+      "model_calls": 9,
+      "calls_with_usage": 9,
+      "input_tokens": 120277,
+      "output_tokens": 2706,
+      "citation_provenance_valid": true,
+      "sources": [
+        "mtg:April%2017%2C%202026:rule:702.12b"
+      ]
+    },
+    {
+      "case_id": "damage-response",
+      "status": "ok",
+      "elapsed_ms": 14423.3108330518,
+      "model_calls": 4,
+      "calls_with_usage": 4,
+      "input_tokens": 15770,
+      "output_tokens": 660,
+      "citation_provenance_valid": true,
+      "sources": [
+        "mtg:April%2017%2C%202026:rule:510.2"
+      ]
+    },
+    {
+      "case_id": "source-removed",
+      "status": "ok",
+      "elapsed_ms": 17373.0314578861,
+      "model_calls": 4,
+      "calls_with_usage": 4,
+      "input_tokens": 15256,
+      "output_tokens": 910,
+      "citation_provenance_valid": true,
+      "sources": [
+        "mtg:April%2017%2C%202026:rule:113.7a",
+        "mtg:April%2017%2C%202026:rule:605.3b"
+      ]
+    },
+    {
+      "case_id": "glossary",
+      "status": "ok",
+      "elapsed_ms": 9563.98433400318,
+      "model_calls": 4,
+      "calls_with_usage": 4,
+      "input_tokens": 15697,
+      "output_tokens": 446,
+      "citation_provenance_valid": true,
+      "sources": [
+        "mtg:April%2017%2C%202026:glossary:Permanent",
+        "mtg:April%2017%2C%202026:rule:110.1"
+      ]
+    },
+    {
+      "case_id": "card-name",
+      "status": "ok",
+      "elapsed_ms": 10184.588791104034,
+      "model_calls": 4,
+      "calls_with_usage": 4,
+      "input_tokens": 88891,
+      "output_tokens": 333,
+      "citation_provenance_valid": null,
+      "sources": []
+    },
+    {
+      "case_id": "rules-followup",
+      "status": "ok",
+      "elapsed_ms": 26437.805500114337,
+      "model_calls": 8,
+      "calls_with_usage": 8,
+      "input_tokens": 32499,
+      "output_tokens": 1288,
+      "citation_provenance_valid": true,
+      "sources": [
+        "mtg:April%2017%2C%202026:rule:704.5f",
+        "mtg:April%2017%2C%202026:rule:702.12b"
+      ]
+    },
+    {
+      "case_id": "missing-card",
+      "status": "ok",
+      "elapsed_ms": 14043.044582940638,
+      "model_calls": 4,
+      "calls_with_usage": 4,
+      "input_tokens": 2800,
+      "output_tokens": 335,
+      "citation_provenance_valid": null,
+      "sources": []
+    },
+    {
+      "case_id": "card-filters",
+      "status": "ok",
+      "elapsed_ms": 55592.961417045444,
+      "model_calls": 4,
+      "calls_with_usage": 4,
+      "input_tokens": 127491,
+      "output_tokens": 2630,
+      "citation_provenance_valid": null,
+      "sources": []
+    },
+    {
+      "case_id": "card-followup",
+      "status": "ok",
+      "elapsed_ms": 146429.5225420501,
+      "model_calls": 8,
+      "calls_with_usage": 8,
+      "input_tokens": 717565,
+      "output_tokens": 10329,
+      "citation_provenance_valid": null,
+      "sources": []
+    }
+  ],
+  "completed": 20,
+  "elapsed_ms": {
+    "mean": 29135.627641552128,
+    "p50": 15165.706958156079,
+    "p95": 75394.4874170702,
+    "max": 146429.5225420501
+  },
+  "input_tokens": 1314954,
+  "output_tokens": 35703,
+  "model_calls": 92,
+  "calls_with_usage": 92,
+  "semantic_quality": "Requires separate judgments; production approval is not a score"
+}

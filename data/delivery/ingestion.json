@@ -1,0 +1,29 @@
+{
+  "documents": 4020,
+  "embedded": 3988,
+  "reused": 32,
+  "collection": "magic-rules",
+  "versions": [
+    "April 17, 2026"
+  ],
+  "configuration": {
+    "schema": 1,
+    "embedding": {
+      "model": "text-embedding-3-small",
+      "dimensions": 1536
+    },
+    "text_format": "title-body-v1",
+    "index": {
+      "hnsw": {
+        "space": "cosine",
+        "ef_construction": 100,
+        "ef_search": 100,
+        "max_neighbors": 16
+      }
+    },
+    "chroma_version": "1.5.5"
+  },
+  "input_sha256": "b9c18eb02c6b6ae62bf56fb6df963e86aa587d74cff1af5db1156f3de6db9afb",
+  "collection_count": 4020,
+  "completed_at": "2026-11-02T14:01:35.890838+00:00"
+}
