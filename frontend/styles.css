@@ -143,5 +143,6 @@ details p { font-size: 13px; line-height: 1.6; margin: 10px 0 0; }
 @media (max-height: 650px) { .workflow-panel { position: static; } }
 
 .workflow-name { font-size: 11px; }
+.workflow-node.llm-node .workflow-name { font-weight: 700; }
 .workflow-scroll::-webkit-scrollbar, #workflow-trail::-webkit-scrollbar { height: 6px; }
 .workflow-scroll::-webkit-scrollbar-thumb, #workflow-trail::-webkit-scrollbar-thumb { background: #b7c8bf; border-radius: 6px; }

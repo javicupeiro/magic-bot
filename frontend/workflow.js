@@ -30,6 +30,8 @@ const cardEdges = [
   ['cards.collect', 'cards.finish', 'M552 51H580'],
 ];
 const recoveryNodes = new Set(['retrieve_more', 'repair']);
+// Cards contains model calls in its subgraph; retrieval embeddings are not LLM steps.
+const llmNodes = new Set(['route', 'cards', 'decompose', 'generate', 'review', 'repair', 'cards.model', 'cards.finish']);
 const duration = value => Number.isFinite(value) ? `${(value / 1000).toFixed(3)} s` : 'Not available';
 
 function element(tag, text, className) {
@@ -68,6 +70,7 @@ function drawGraph(container, nodes, edges, width, height, prefix, onSelect) {
   canvas.append(svg);
   const nodeElements = nodes.map(([name, x, y]) => {
     const button = element(name === 'end' ? 'div' : 'button', undefined, 'workflow-node');
+    button.classList.toggle('llm-node', llmNodes.has(name));
     button.dataset.node = name;
     button.style.left = `${x / width * 100}%`;
     button.style.top = `${y}px`;
