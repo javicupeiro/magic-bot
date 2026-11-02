@@ -1,5 +1,7 @@
 # Magic Bot
 
+**Live demo:** [Try Magic Bot](https://magic-bot-demo.onrender.com/ui/)
+
 A local **Magic: The Gathering** assistant that answers rules questions in English
 and Spanish, searches live cards, and supports conversational follow-ups. It combines
 retrieval-augmented generation (RAG), native LangChain tools, and LangGraph workflows
