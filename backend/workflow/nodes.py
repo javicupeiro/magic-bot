@@ -15,6 +15,7 @@ import json
 from backend.generation.answers import AnswerDraft, finish_answer
 from backend.generation.llm import StructuredOutputError
 from backend.common.prompts import load_prompt
+from backend.common.tracing import retrieval_observation
 from backend.workflow.references import bounded_context, expand_references
 from backend.workflow.state import AnswerReview, EvidenceReview, Decomposition, RouteDecision
 from backend.workflow.review_policy import DEFAULT_REVIEW_POLICY, compact_card
@@ -128,6 +129,18 @@ class WorkflowNodes:
         # context_size already counts the two brackets of the rules array.
         return self.context_budget - (len(wrapper) - 2)
 
+    def _search(self, query, kind):
+        """Return hits for one query and kind, and record which ids that call found.
+
+        The retriever is not a LangChain retriever, so node callbacks cannot show
+        which query produced which id. The observation is a no-op when tracing is
+        off. A search error is recorded and raised again; telemetry errors are not.
+        """
+        with retrieval_observation(query, kind=kind, edition=self.version) as observed:
+            hits = self.retriever.search(query, k=self.k, kind=kind, version=self.version)
+            observed.sources(hit.id for hit in hits)
+            return hits
+
     def retrieve(self, state):
         """Read queries; return deduplicated rule/glossary evidence in context.
 
@@ -139,7 +152,7 @@ class WorkflowNodes:
         groups = []
         for query in state["queries"]:
             for kind in ("rule", "glossary"):
-                hits = self.retriever.search(query, k=self.k, kind=kind, version=self.version)
+                hits = self._search(query, kind)
                 groups.append(hits)
                 sources.extend(hits)
         if self.review_policy.balanced_context:
@@ -261,7 +274,7 @@ class WorkflowNodes:
         sources = []
         for query in state["repair_queries"][:3]:
             for kind in ("rule", "glossary"):
-                sources.extend(self.retriever.search(query, k=self.k, kind=kind, version=self.version))
+                sources.extend(self._search(query, kind))
         cited_ids = {identifier for claim in state["candidate_draft"].claims
                      for identifier in claim.source_ids}
         preserved = [source for source in state["context"] if source.id in cited_ids]

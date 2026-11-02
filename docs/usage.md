@@ -107,6 +107,11 @@ settings are `OPENAI_EMBEDDING_MODEL` and `OPENAI_EMBEDDING_DIMENSIONS`. Query
 embeddings use the configuration recorded in the index. Environment variables
 have precedence over `.env`.
 
+Langfuse tracing stays off unless both `LANGFUSE_PUBLIC_KEY` and
+`LANGFUSE_SECRET_KEY` are set. `LANGFUSE_TRACING_ENABLED=false` forces it off.
+A tracing failure is printed to stderr and does not change the answer. See
+[observability](observability.md).
+
 Prompts record their versions and hashes. Claims refer to retrieved source IDs;
 Python builds excerpts and citation markers from stored records. Invalid IDs
 cause abstention, not fabricated citations. All current conversations are single

@@ -16,6 +16,7 @@ model; LangGraph decides when those operations run.
 - `backend/cards/replies.py`: structured card reply and evidence records.
 - `backend/workflow/`: routing, rule nodes, persistent conversations, context selection and CLI.
 - `backend/common/prompts.py`: the reusable loader and active prompt versions.
+- `backend/common/tracing.py`: optional Langfuse session, trace and retrieval spans.
 - `backend/prompts/`: versioned Markdown instructions for all model steps.
 - `tests/`: deterministic behavior checks.
 
@@ -173,23 +174,27 @@ not make arguments trustworthy or replace the HTTP client.
 There is one cycle. The former manual Responses dispatcher and the
 `CatalogueToolNode` conversion bridge have been removed. `ChatOpenAI` handles the
 provider protocol; application code uses LangChain messages throughout. The same
-LLM wrapper handles structured generation, preparing later callback integration.
+LLM wrapper handles structured generation. Graph entry points pass callbacks
+into that model.
 
-## Observability now and later
+## Observability
 
 `QuestionWorkflow.stream()` delegates to LangGraph with `stream_mode="updates"`
 and `subgraphs=True`. Child events include a namespace, so consumers can see
 `cards/model`, `cards/tools`, `cards/collect` and `cards/finish` separately.
 `magic-chat --events` prints only namespaces and completed node names.
 
+Optional Langfuse tracing uses those same callbacks: one session per
+conversation and one trace per turn. Generation observations carry token usage
+when the provider reports it. The parent card span does not, so nested spans
+are not added twice. See [observability](observability.md) for configuration,
+the data sent to Langfuse, and how to inspect a trace.
+
 Native model messages retain usage metadata when the provider reports it. Raw
 state is internal diagnostic data and can contain provider metadata. The future
 HTTP adapter must expose an allowlisted event schema, not dump those messages to
 the browser. No internal reasoning or encrypted provider state belongs in the UI.
-
-Future work may add callbacks, safe HTTP events and the panel. They must distinguish
-the parent cards span from its children when aggregating tokens and duration.
-Local SQLite conversations are persistent. There is no token dashboard or Langfuse tracing yet.
+Local SQLite conversations remain the chat record. There is no token dashboard.
 
 ## Limits and tradeoffs
 

@@ -7,6 +7,7 @@ there is no hand-written provider loop or conversion between message protocols.
 
 import json
 from typing import Annotated, TypedDict
+from uuid import uuid4
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
 from langgraph.graph import END, START, StateGraph
@@ -17,6 +18,7 @@ from langgraph.prebuilt.tool_node import ToolInvocationError
 from backend.cards.replies import CardAgentResult, CardReply, ToolExchange
 from backend.cards.tools import catalogue_tools
 from backend.common.prompts import load_prompt
+from backend.common.tracing import TraceReport, trace_turn
 from backend.generation.llm import LLM, StructuredOutputError
 
 
@@ -148,17 +150,37 @@ def build_card_graph(api, llm, *, max_calls=4):
 class CardAgent:
     """CLI convenience wrapper around the same graph used by magic-chat."""
 
-    def __init__(self, api, *, llm=None, max_calls=4):
+    def __init__(self, api, *, llm=None, max_calls=4, trace_client=None):
         self.api = api
         self.llm = llm if llm is not None else LLM()
         self.max_calls = max_calls
+        self.trace_client = trace_client
+        self.trace_report = TraceReport("disabled")
         self.graph = build_card_graph(api, self.llm, max_calls=max_calls)
 
     def answer(self, question: str) -> CardAgentResult:
+        """Run one card-graph invocation. Each call is its own session.
+
+        card-chat does not store a conversation, so the session id exists only
+        for this trace. A telemetry failure is reported and does not change the reply.
+        """
         if not question.strip():
             raise ValueError("Question must not be empty")
-        state = self.graph.invoke({"question": question, "card_names": []}, {"recursion_limit": 64})
-        return CardAgentResult(question=question, reply=state["card_reply"], cards=state["cards"],
-            exchanges=[ToolExchange(**item) for item in state["exchanges"]],
-            model=self.llm.config.model, reasoning_effort=self.llm.config.reasoning_effort,
-            prompts=state["card_prompts"], max_calls=self.max_calls, max_pages=self.api.max_pages)
+        metadata = {"model": self.llm.config.model, "reasoning_effort": self.llm.config.reasoning_effort}
+        turn = None
+        try:
+            with trace_turn(session_id=str(uuid4()), name="card-turn", metadata=metadata,
+                            client=self.trace_client) as turn:
+                try:
+                    state = self.graph.invoke({"question": question, "card_names": []},
+                                              turn.apply({"recursion_limit": 64}))
+                except Exception as exc:
+                    turn.fail(exc)
+                    raise
+            return CardAgentResult(question=question, reply=state["card_reply"], cards=state["cards"],
+                exchanges=[ToolExchange(**item) for item in state["exchanges"]],
+                model=self.llm.config.model, reasoning_effort=self.llm.config.reasoning_effort,
+                prompts=state["card_prompts"], max_calls=self.max_calls, max_pages=self.api.max_pages)
+        finally:
+            if turn is not None:
+                self.trace_report = turn.report

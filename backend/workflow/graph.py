@@ -14,6 +14,7 @@ from langgraph.graph import END, START, StateGraph
 
 from backend.cards.agent import build_card_graph
 from backend.cards.mtg_api import MtgApiClient
+from backend.common.tracing import TraceReport, trace_turn
 from backend.generation.llm import LLM
 from backend.retrieval.retrieval import DEFAULT_K
 from backend.workflow.context import select_history
@@ -139,11 +140,14 @@ class QuestionWorkflow:
     Tests inject fake services through these same parameters without changing the
     graph. k applies per query and source kind; context_budget counts serialized
     evidence characters, not tokens or the complete provider request size.
+    trace_client injects a simulated tracer in tests. When it is omitted, tracing
+    follows the environment and stays off without Langfuse keys.
     """
 
     def __init__(self, retriever, *, llm=None, api_factory=MtgApiClient,
                  max_calls=4, k=DEFAULT_K, version=None, context_budget=24000,
-                 memory_path=DEFAULT_MEMORY_PATH, history_budget=8000, review_policy=DEFAULT_REVIEW_POLICY):
+                 memory_path=DEFAULT_MEMORY_PATH, history_budget=8000, review_policy=DEFAULT_REVIEW_POLICY,
+                 trace_client=None):
         """Validate application limits before opening clients or invoking a model."""
         if type(max_calls) is not int or not 1 <= max_calls <= 10:
             raise ValueError("max_calls must be an integer between 1 and 10")
@@ -159,6 +163,8 @@ class QuestionWorkflow:
         self.graph = None
         self.retriever, self.llm = retriever, llm if llm is not None else LLM()
         self.api_factory = api_factory
+        self.trace_client = trace_client
+        self.trace_report = TraceReport("disabled")
         self.settings = dict(max_calls=max_calls, k=k, version=version, context_budget=context_budget, review_policy=review_policy)
 
     def __enter__(self):
@@ -199,20 +205,45 @@ class QuestionWorkflow:
         state.update(messages=messages, history=selected[:-1], conversation_id=conversation_id)
         return state, config
 
+    def _tracing(self, conversation_id):
+        """Open one trace for this conversation turn, or a no-op when tracing is off.
+
+        The conversation id is the Langfuse session. Nested model and tool calls
+        inherit the callback from this config; a telemetry failure stays on
+        trace_report and does not replace the graph result.
+        """
+        metadata = {"model": self.llm.config.model, "reasoning_effort": self.llm.config.reasoning_effort}
+        if self.settings["version"]:
+            metadata["rules_edition"] = self.settings["version"]
+        return trace_turn(session_id=conversation_id, name="question-turn",
+                          metadata=metadata, client=self.trace_client)
+
     def answer(self, question: str, *, conversation_id=None) -> WorkflowState:
         """Run a turn in the supplied conversation, or allocate a new conversation.
 
         Use a with block to reuse the compiled graph across turns. Standalone
         calls open and close resources automatically. Returned state includes the
         conversation_id needed to resume later, including after process restart.
+        This is one graph invocation. Tracing flushes when the turn context exits.
         """
         if self.graph is None:
             with self:
                 return self.answer(question, conversation_id=conversation_id)
         conversation_id = conversation_id if conversation_id is not None else self.new_conversation()
-        with conversation_turn(self.memory_path, conversation_id):
-            state, config = self._prepare_turn(question, conversation_id)
-            return self.graph.invoke(state, config)
+        turn = None
+        try:
+            with conversation_turn(self.memory_path, conversation_id):
+                with self._tracing(conversation_id) as turn:
+                    try:
+                        state, config = self._prepare_turn(question, conversation_id)
+                        result = self.graph.invoke(state, turn.apply(config))
+                    except Exception as exc:
+                        turn.fail(exc)
+                        raise
+            return result
+        finally:
+            if turn is not None:
+                self.trace_report = turn.report
 
     def stream(self, question: str, *, conversation_id=None):
         """Yield native updates while holding resources and the conversation lock.
@@ -220,12 +251,24 @@ class QuestionWorkflow:
         Close the iterator if stopping early. Only a completed turn reaches
         remember; a later invocation starts afresh after any interrupted turn.
         Supply an ID from new_conversation() to resume an event-only session.
+        The same trace wraps this stream. Do not invoke the graph again to
+        rebuild the result; read trace_report after the iterator finishes.
         """
         if self.graph is None:
             with self:
                 yield from self.stream(question, conversation_id=conversation_id)
             return
         conversation_id = conversation_id if conversation_id is not None else self.new_conversation()
-        with conversation_turn(self.memory_path, conversation_id):
-            state, config = self._prepare_turn(question, conversation_id)
-            yield from self.graph.stream(state, config, stream_mode="updates", subgraphs=True)
+        turn = None
+        try:
+            with conversation_turn(self.memory_path, conversation_id):
+                with self._tracing(conversation_id) as turn:
+                    try:
+                        state, config = self._prepare_turn(question, conversation_id)
+                        yield from self.graph.stream(state, turn.apply(config), stream_mode="updates", subgraphs=True)
+                    except Exception as exc:
+                        turn.fail(exc)
+                        raise
+        finally:
+            if turn is not None:
+                self.trace_report = turn.report

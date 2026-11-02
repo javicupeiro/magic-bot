@@ -43,6 +43,7 @@ from openai import OpenAIError
 from pydantic import BaseModel
 
 from backend.cards.mtg_api import MtgApiClient
+from backend.common.tracing import warn_missing_trace
 from backend.ingestion.ingest import DEFAULT_INPUT
 from backend.retrieval.hybrid import DEFAULT_CANDIDATES
 from backend.retrieval.retrieval import DEFAULT_K, DEFAULT_METHOD, METHODS, Retriever, SearchResult
@@ -145,8 +146,10 @@ def main():
                 # Only publish node names here: raw messages may include private
                 # provider metadata. The later HTTP adapter will allowlist fields.
                 print(json.dumps({"namespace": namespace, "nodes": list(update)}, ensure_ascii=False), flush=True)
+            warn_missing_trace(workflow.trace_report)
             return
         state = workflow.answer(args.question, conversation_id=conversation_id)
+        warn_missing_trace(workflow.trace_report)
     except OpenAIError as exc:
         # Avoid printing provider exception bodies, which can contain request data.
         parser.exit(1, f"Model request failed ({type(exc).__name__})\n")

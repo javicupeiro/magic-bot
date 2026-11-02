@@ -15,6 +15,7 @@ from openai import OpenAIError
 from backend.cards.agent import CardAgent
 from backend.cards.replies import CardAgentResult
 from backend.cards.mtg_api import MtgApiClient
+from backend.common.tracing import warn_missing_trace
 
 
 def format_reply(result: CardAgentResult, *, trace: bool = False) -> str:
@@ -73,7 +74,9 @@ def main() -> None:
     try:
         with MtgApiClient(max_pages=args.max_pages, page_size=args.page_size,
                           timeout=args.timeout, retries=args.retries) as api:
-            result = CardAgent(api, max_calls=args.max_calls).answer(args.question)
+            agent = CardAgent(api, max_calls=args.max_calls)
+            result = agent.answer(args.question)
+            warn_missing_trace(agent.trace_report)
     except OpenAIError as exc:
         parser.exit(1, f"Model request failed ({type(exc).__name__})\n")
     except (OSError, ValueError) as exc:
