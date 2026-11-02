@@ -149,6 +149,9 @@ class AnswerServiceTests(unittest.TestCase):
                 service.retriever.search.assert_any_call(result.english_query, k=3, kind=kind, version="edition")
             answer_prompt = service.llm.generate.call_args_list[1].args[0]
             self.assertIn(f"({language}:", answer_prompt)
+            self.assertIn(question.strip(), answer_prompt)
+            self.assertIn("When does unused mana empty?", answer_prompt)
+            self.assertIn("Spanish is required" if language == "es" else "en = English", answer_prompt)
             self.assertIn(SOURCE.text, answer_prompt)
             self.assertIn(GLOSSARY.text, answer_prompt)
 

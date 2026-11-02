@@ -6,9 +6,10 @@ and queries the live card API through native LangGraph tools.
 
 The current implementation includes PDF ingestion, retrieval, grounded answers,
 card catalogue tools, vector/hybrid retrieval, a chat workflow with bounded
-answer review, persistent local conversations, optional Langfuse tracing, and a
-local FastAPI backend with POST SSE execution events.
-The web UI remains planned. Omitting a conversation ID starts a new conversation.
+answer review, persistent local conversations, optional Langfuse tracing, a
+local FastAPI backend with POST SSE execution events, and a framework-free web
+UI with separate chat and execution panels. Omitting a conversation ID starts a
+new conversation.
 
 ## Start locally
 
@@ -22,6 +23,8 @@ uv run --locked pdf-to-text
 uv run --locked parse-rules
 uv run --locked ingest-rules
 uv run --locked magic-chat '¿Qué es dañar primero?'
+# Web chat: open http://127.0.0.1:8000/ui/
+uv run --locked uvicorn backend.api.app:app --host 127.0.0.1 --port 8000 --workers 1
 ```
 
 Uncached embeddings and model calls use `OPENAI_API_KEY` and incur provider costs.

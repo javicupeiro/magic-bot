@@ -88,7 +88,7 @@ class WorkflowTests(unittest.TestCase):
             {"name": "Sample", "text": "First strike", "id": "p1"}]})).answer("Sample interaction")
         self.assertEqual(state["verified_cards"][0]["text"], "First strike")
         self.assertIn("[100.1]", state["answer"])
-        self.assertEqual(state["prompts"]["answer"]["version"], "v2")
+        self.assertEqual(state["prompts"]["answer"]["version"], "v3")
         self.assertIn("resolve_cards", state["prompts"])
 
     def test_missing_card_resolution_stops_before_retrieval(self):

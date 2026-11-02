@@ -16,14 +16,25 @@ model; LangGraph decides when those operations run.
 - `backend/cards/replies.py`: structured card reply and evidence records.
 - `backend/workflow/`: routing, rule nodes, persistent conversations, context selection and CLI.
 - `backend/api/`: local FastAPI routes, public schemas and native-event-to-SSE adaptation.
+- `frontend/`: browser HTML/CSS, chat state/rendering and incremental HTTP/SSE consumption.
 - `backend/common/prompts.py`: the reusable loader and active prompt versions.
 - `backend/common/tracing.py`: optional Langfuse session, trace and retrieval spans.
 - `backend/prompts/`: versioned Markdown instructions for all model steps.
 - `tests/`: deterministic behavior checks.
 
-The future UI will live in `frontend/`, separate from `backend/`. It does not exist
-yet. We keep the current functional packages rather than introducing a second
-`src/` hierarchy only to match the original plan.
+The UI lives in `frontend/`, separate from `backend/`. `index.html` defines
+accessible controls and the two panels; `styles.css` handles columns/stacking.
+`chat.js` owns conversation ID, transcript, busy state and the latest turn's
+step occurrences. `stream.js` owns HTTP status checks, streaming UTF-8 decoding
+and complete SSE frame parsing. FastAPI mounts only this asset folder at `/ui/`.
+No graph policy, provider settings or secrets move into the browser.
+
+The browser sends one POST and `readEvents()` passes complete public events to
+`receiveEvent()`. Steps are correlated by opaque IDs, not node names; token usage
+is counted per model event and enclosing durations are never summed. Final prose,
+card records and validated citations come from that same execution. Rendering uses
+DOM `textContent`, not external HTML. History is reloaded via GET and never used
+to infer missing steps. See [the UI guide](usage.md#web-chat-and-execution-panel).
 
 The HTTP entry point is `backend.api.app:app`. A POST creates one synchronous
 workflow in an executor thread, consuming native updates and callbacks from
@@ -140,8 +151,9 @@ Tool-call/result groups remain atomic if native tool messages are ever supplied
 for selection. The mandatory current question counts toward the history limit;
 an oversized question raises an error. `route/v2` resolves references using this
 bounded history before translation/classification. Its self-contained English
-intent reaches card tools and rule generation/review; original text and reply
-language remain separate. Previous answers guide interpretation, never evidence.
+intent is what retrieval and card tools use. Rule generation, review and repair
+also receive the original question and must write user-facing claims in the
+reply language. Previous answers guide interpretation, never evidence.
 See [conversation memory](conversation-memory.md) for budgets and examples.
 
 ## Native tool cycle
@@ -200,10 +212,10 @@ are not added twice. See [observability](observability.md) for configuration,
 the data sent to Langfuse, and how to inspect a trace.
 
 Native model messages retain usage metadata when the provider reports it. Raw
-state is internal diagnostic data and can contain provider metadata. The future
-HTTP adapter must expose an allowlisted event schema, not dump those messages to
-the browser. No internal reasoning or encrypted provider state belongs in the UI.
-Local SQLite conversations remain the chat record. There is no token dashboard.
+state is internal diagnostic data and can contain provider metadata. The HTTP adapter exposes an allowlisted event schema, never those raw messages
+to the browser. No internal reasoning or encrypted provider state belongs in the UI.
+Local SQLite conversations remain the chat record. The UI shows reported per-call
+usage and a possibly partial turn total, not a persisted token dashboard.
 
 ## Limits and tradeoffs
 

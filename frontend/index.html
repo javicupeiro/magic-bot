@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Magic bot · Chat & execution</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./chat.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#message">Skip to message</a>
+  <header class="app-header">
+    <div><span class="eyebrow">MAGIC: THE GATHERING</span><h1>Magic bot <span class="tag">Local demo</span></h1></div>
+    <a href="/docs" target="_blank" rel="noopener noreferrer">HTTP API ↗</a>
+  </header>
+  <nav class="conversation-bar" aria-label="Conversation controls">
+    <label for="conversations">Conversation</label>
+    <select id="conversations"><option value="">New conversation</option></select>
+    <button id="new" type="button">New conversation</button>
+    <button id="reload" type="button">Reload history</button>
+  </nav>
+  <p id="notice" class="notice" role="status" aria-live="polite">Loading conversations…</p>
+  <main>
+    <section class="panel chat-panel" aria-labelledby="chat-heading">
+      <div class="panel-heading"><div><span class="eyebrow">01 / CONVERSATION</span><h2 id="chat-heading">Ask about Magic</h2></div><span id="chat-status" class="tag">Ready</span></div>
+      <div id="messages" class="messages" role="log" aria-label="Chat messages" aria-live="polite"><p class="empty">Ask in English or Spanish. Search for a card or explore a rules interaction.</p></div>
+      <form id="composer">
+        <label for="message">Your message</label>
+        <textarea id="message" name="message" rows="3" maxlength="16000" required placeholder="How do first strike and deathtouch interact?"></textarea>
+        <div class="composer-footer"><small>Enter to send · Shift + Enter for a new line</small><button id="send" type="submit">Send message ↗</button></div>
+      </form>
+    </section>
+    <section class="panel execution-panel" aria-labelledby="execution-heading">
+      <div class="panel-heading"><div><span class="eyebrow">02 / EXECUTION</span><h2 id="execution-heading">Follow the evidence</h2></div><span id="execution-status" class="tag">Waiting</span></div>
+      <p class="panel-note">Observed backend events. Each card model/tool cycle appears separately.</p>
+      <dl class="metrics"><div><dt>Total duration</dt><dd id="duration">Not available</dd></div><div><dt>Reported tokens</dt><dd id="tokens">Not available</dd></div></dl>
+      <p id="usage-note" class="panel-note">Tokens count model calls only. Parent and child durations overlap and are never added.</p>
+      <p id="current" role="status">No active step.</p>
+      <ol id="steps" class="steps"></ol>
+      <details class="contract-note"><summary>Available execution details</summary><p>Tool arguments, subqueries, review verdicts and trace links are not published by this HTTP contract. Review and retry steps appear when observed; their private contents are not inferred.</p></details>
+      <div id="evidence"></div>
+    </section>
+  </main>
+</body>
+</html>

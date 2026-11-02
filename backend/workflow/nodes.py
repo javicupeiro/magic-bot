@@ -37,6 +37,16 @@ class WorkflowNodes:
         self.context_budget = context_budget
         self.review_policy = review_policy
 
+    def _question_json(self, state):
+        """Give later prompts the user's words and the English resolution as data.
+
+        Retrieval keeps using the English query. original is what the user asked,
+        so answer and repair can write claims in that language.
+        """
+        return json.dumps({"original": state["question"],
+                           "resolved": state.get("resolved_question") or state["question"]},
+                          ensure_ascii=False)
+
     def route(self, state):
         """Read question; return a validated decision and prompt provenance.
 
@@ -187,7 +197,7 @@ class WorkflowNodes:
         prompt = load_prompt("answer")
         try:
             draft = self.llm.generate(prompt.render(
-                question_json=json.dumps(state.get("resolved_question") or state["question"], ensure_ascii=False),
+                question_json=self._question_json(state),
                 language=state["decision"].language,
                 context_json=json.dumps(evidence, ensure_ascii=False)), AnswerDraft)
         except StructuredOutputError:
@@ -213,7 +223,7 @@ class WorkflowNodes:
         """Serialize the same bounded evidence and original proposal for both roles."""
         evidence = {"rules": [source.to_dict() for source in state["context"]],
                     "verified_cards": state["verified_cards"]}
-        return {"question_json": json.dumps(state.get("resolved_question") or state["question"], ensure_ascii=False),
+        return {"question_json": self._question_json(state),
                 "context_json": json.dumps(evidence, ensure_ascii=False),
                 "draft_json": state["candidate_draft"].model_dump_json(),
                 "validation_json": json.dumps({"error": state["validation_error"],
@@ -230,7 +240,7 @@ class WorkflowNodes:
         unavailable = False
         try:
             verdict = self.llm.generate(prompt.render(**self._review_values(state)),
-                                        EvidenceReview if self.review_policy.prompt_version == "v2" else AnswerReview)
+                                        EvidenceReview if self.review_policy.prompt_version != "v1" else AnswerReview)
         except StructuredOutputError:
             unavailable = True
             verdict = AnswerReview(supported=False, unsupported_claims=[],

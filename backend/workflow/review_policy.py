@@ -10,13 +10,13 @@ class ReviewPolicy:
     balanced_context: bool = False
 
     def __post_init__(self):
-        if self.prompt_version not in {"v1", "v2"}:
+        if self.prompt_version not in {"v1", "v2", "v3"}:
             raise ValueError("Unsupported review prompt version")
 
 
 LEGACY_REVIEW_POLICY = ReviewPolicy()
 BALANCED_REVIEW_POLICY = ReviewPolicy(
-    compact_cards=True, local_repair=True, prompt_version="v2", balanced_context=True)
+    compact_cards=True, local_repair=True, prompt_version="v3", balanced_context=True)
 DEFAULT_REVIEW_POLICY = BALANCED_REVIEW_POLICY
 
 

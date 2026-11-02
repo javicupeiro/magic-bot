@@ -86,3 +86,45 @@ typed checkpoint reconstruction, resetting tools/evidence/drafts/review budgets,
 full storage with bounded model history, atomic parallel tool pairs and local
 turn exclusion. Existing workflow tests also use temporary memory databases.
 See [conversation memory](conversation-memory.md) for a live CLI demonstration.
+
+## Web UI checks
+
+The frontend has no runtime or build dependencies. The existing Python suite
+includes one static-delivery check: same-origin HTML/modules/CSS, preserved API
+routes and no serving of project secrets. `tests/test_frontend.py` also provides
+a **scripted HTTP backend** for a browser end-to-end check, entirely offline:
+
+```sh
+LANGFUSE_TRACING_ENABLED=false uv run --locked python tests/test_frontend.py --serve
+```
+
+Open `http://127.0.0.1:8014/ui/`, then run in that page's browser developer console:
+
+```js
+await (await import('/_checks.js')).runChecks()
+```
+
+The function throws on failure or returns `{passed: true, posts: 7, checks: ...}`.
+Reload the page before rerunning. This is a browser check invoked manually, not
+part of Python unittest discovery; it uses the actual UI modules and real fetch
+requests to simulated endpoints. No Playwright dependency or CSS snapshots are
+introduced. Only the fixture server exposes `/_checks.js`, `/_stats` and image
+fixtures; none are production API routes. Stop it with Ctrl+C.
+
+Checks cover byte-by-byte UTF-8 and CRLF frame splitting, incomplete-stream
+failure, a bilingual interaction with sources, repeated model/tool cycles,
+review/repair, reported tokens, unknown versus zero, safe external text/images,
+image success/fallback, expandable citations, history reload/switch, card-only
+completion, clarification, HTTP 409, step failure, truncated execution, recovery
+and suppression of duplicate submissions. Unconfirmed messages remain after
+history reconciliation. The fixture does not validate actual model quality.
+
+Browser verification (2026-11-02): the browser check passed with seven POSTs;
+manual Chrome inspection showed two columns on desktop and stacked panels in a
+narrow window, with keyboard Enter submission and visible Tab focus. Integrated
+preview screenshots timed out twice; native Chrome supplied visual inspection.
+No paid API requests were made. `node --check` passed for the three JavaScript
+modules/check files. Full Python discovery ran 89 tests: 88 passed, with the
+already documented `test_probes_are_isolated_and_empty_context_restores_retrieval`
+error (`StopIteration` in the evaluation fixture). The UI changes do not alter
+that model fixture; see the earlier [HTTP verification notes](http-api.md#verification-notes).

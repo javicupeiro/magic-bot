@@ -16,7 +16,7 @@ The frontend does not receive credentials or select graph/provider settings.
 ## Basic endpoints
 
 - `GET /` returns a welcome message and relative links to documentation, health,
-  version and conversations.
+  version, conversations and the [web UI](usage.md#web-chat-and-execution-panel) at `/ui/`.
 - `GET /health` returns `{"status":"ok"}` when the HTTP application responds.
   It does not probe SQLite, the rules index, the model or external services.
 - `GET /version` returns `{"name":"magic-bot","version":"0.1.0"}` (using the
@@ -135,9 +135,11 @@ Completed user/assistant pairs remain available; a later explicit turn resets
 transient evidence after interruption, following the existing workflow policy.
 
 Only one process/worker is supported for local SQLite turn exclusion. Production
-authentication, cross-process locking, public deployment and the UI are outside
-this API. No permissive CORS policy is added; serve a later UI from the same
-origin or configure its concrete origin when the UI is implemented.
+authentication, cross-process locking and public deployment are outside this API.
+The demo serves `frontend/` at `/ui/` from the same origin without a permissive
+CORS policy. Static files do not change the conversation/event schemas. Tool
+arguments, subqueries, review verdicts, model names and trace URLs remain unavailable
+to the UI; it explicitly labels these limits.
 
 ## Verification notes
 

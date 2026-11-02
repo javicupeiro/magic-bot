@@ -3,6 +3,72 @@
 Run from the repository root with `uv sync --locked`. Keep an existing `.env`;
 otherwise create one from `.env.example`. Never put keys in command arguments.
 
+## Web chat and execution panel
+
+```sh
+uv sync --locked
+uv run --locked uvicorn backend.api.app:app --host 127.0.0.1 --port 8000 --workers 1
+```
+
+Open **http://127.0.0.1:8000/ui/**. Run from the repository checkout; FastAPI
+serves `frontend/` at `/ui/` and the API from the same origin. There is no npm
+install, JavaScript build, permissive CORS or second UI service. The API welcome
+page remains at `/`, interactive help at `/docs`. The Python-only wheel does not
+bundle the UI assets. Keep an existing `.env`; credentials stay on the backend.
+Rules questions still require the prepared Chroma index and provider credentials;
+card lookups use the live catalogue. Real turns can incur model/embedding charges.
+
+The left panel contains your messages, the final answer, expandable citations
+(original excerpt, physical pages, source ID, kind and rules version) and the
+actual card records returned by the API. Available HTTP(S) images are loaded
+without a referrer; absent, unsafe or broken image URLs leave a text fallback.
+All external prose is rendered as literal text, including HTML-looking strings.
+
+The right panel shows **observed execution events for the latest turn**. Each
+occurrence has its own step ID: repeated `cards.model`, `cards.tools`,
+`cards.collect` and `cards.finish` steps remain separate. The enclosing `cards`
+step is also visible. Review, validation, extra retrieval and repair appear only
+when their backend events arrive. A card search ends with its results. Rules
+retrieval appears only when the backend continues an interaction. `Turn finished`
+means a terminal answer arrived; clarification and abstention also finish turns,
+so that label does not assert factual approval.
+
+Total duration is the terminal event's wall time. It is **not** the sum of step
+durations: a parent overlaps its children. Tokens sum only `total_tokens` from
+individual `model_usage` events, without counting parent spans. The total may be
+partial; per-call input/output/total counts remain visible. Unknown values display
+`Not available`, whereas reported zero tokens or zero duration display as zero.
+The [HTTP contract](http-api.md) deliberately omits tool arguments, subqueries,
+review verdict contents, model identifiers and trace URLs. The panel labels their
+absence instead of reconstructing them, requesting another explanation from a
+model, or exposing internal state. Tracing remains available through the
+[backend's Langfuse setup](observability.md).
+
+Use **New conversation** to create an isolated conversation. The selector lists
+registered HTTP conversation IDs; **Reload history** fetches completed messages.
+The last selected ID is kept in browser local storage and reopened on page load.
+SQLite owns persisted history. Historical HTTP messages contain only role/text:
+structured citations, card records and past execution events are not replayed.
+The execution panel resets on history reload/switch so old evidence cannot be
+mistaken for a new execution. CLI-only IDs are not listed automatically.
+
+During a turn, sending, switching and history controls are disabled. Enter sends;
+Shift+Enter inserts a newline. Tab/Shift+Tab navigate controls, Enter/Space toggle
+citation disclosures, and focus is visibly outlined. Desktop uses two columns;
+small screens stack chat above execution.
+
+A failed HTTP request, terminal execution error or stream ending without a result
+shows a recoverable error. Observed steps stay visible and unfinished steps are
+marked interrupted. The unconfirmed user message stays in the local transcript,
+and its text is restored in the composer. Reloading history reconciles a turn that
+may have persisted just before disconnection and keeps unmatched pending messages.
+It never automatically resends a POST: inspect history before explicitly sending
+again. Unconfirmed messages are in-memory UI state; switching conversations or
+reloading the entire page discards them. Completed messages remain in SQLite.
+
+For a completely offline browser demo and repeatable checks, see
+[UI verification](testing.md#web-ui-checks).
+
 ## Choose the command for the layer you want to inspect
 
 - `pdf-to-text`: extraction only, no LLM.

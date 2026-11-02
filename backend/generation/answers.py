@@ -161,11 +161,11 @@ class AnswerService:
         if type(k) is not int or k <= 0:
             raise ValueError("k must be a positive integer")
         # JSON quoting keeps the original question as a distinct prompt value.
-        question_json = json.dumps(question, ensure_ascii=False)
+        original_json = json.dumps(question, ensure_ascii=False)
         normalize_prompt = load_prompt("normalize", root=self.prompt_root)
         prompts = {"normalize": dict(normalize_prompt.metadata())}
         normalized = self.llm.generate(
-            normalize_prompt.render(question_json=question_json), NormalizedQuestion)
+            normalize_prompt.render(question_json=original_json), NormalizedQuestion)
         if not normalized.english_query.strip():
             raise ValueError("Normalized query must not be empty")
         context = []
@@ -184,7 +184,9 @@ class AnswerService:
             prompts["answer"] = dict(answer_prompt.metadata())
             try:
                 draft = self.llm.generate(answer_prompt.render(
-                    question_json=question_json, language=normalized.language,
+                    question_json=json.dumps({"original": question, "resolved": normalized.english_query},
+                                             ensure_ascii=False),
+                    language=normalized.language,
                     context_json=json.dumps([source.to_dict() for source in context], ensure_ascii=False),
                 ), AnswerDraft)
             except StructuredOutputError:

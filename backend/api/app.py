@@ -18,6 +18,7 @@ from uuid import UUID, uuid4
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 
 from backend.api.events import EventAdapter, ExecutionStopped, encode_sse, public_answer
 from backend.api.schemas import (
@@ -79,7 +80,7 @@ def create_app(*, memory_path=DEFAULT_MEMORY_PATH, workflow_factory=None):
     async def api_help():
         return ApiHelp(name="magic-bot", message="Welcome to the Magic bot local API.", links={
             "docs": "/docs", "openapi": "/openapi.json", "health": "/health",
-            "version": "/version", "conversations": "/conversations",
+            "version": "/version", "conversations": "/conversations", "ui": "/ui/",
         })
 
     @app.get("/health", response_model=ApiHealth)
@@ -225,6 +226,11 @@ def create_app(*, memory_path=DEFAULT_MEMORY_PATH, workflow_factory=None):
 
         return StreamingResponse(events(), media_type="text/event-stream",
                                  headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+    # Serve only frontend assets; API routes and secrets stay outside this directory.
+    frontend = Path(__file__).resolve().parents[2] / "frontend"
+    if frontend.is_dir():
+        app.mount("/ui", StaticFiles(directory=frontend, html=True), name="ui")
 
     return app
 

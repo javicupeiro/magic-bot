@@ -21,12 +21,37 @@ class ReviewPolicyTests(unittest.TestCase):
     def test_default_policy_is_the_measured_balanced_configuration(self):
         self.assertEqual(DEFAULT_REVIEW_POLICY, BALANCED_REVIEW_POLICY)
         self.assertEqual(DEFAULT_REVIEW_POLICY, ReviewPolicy(
-            compact_cards=True, local_repair=True, prompt_version="v2", balanced_context=True))
+            compact_cards=True, local_repair=True, prompt_version="v3", balanced_context=True))
         self.assertNotEqual(DEFAULT_REVIEW_POLICY, LEGACY_REVIEW_POLICY)
-        self.assertEqual(PROMPT_VERSIONS["review"], "v2")
-        self.assertEqual(PROMPT_VERSIONS["repair"], "v2")
+        self.assertEqual(PROMPT_VERSIONS["answer"], "v3")
+        self.assertEqual(PROMPT_VERSIONS["review"], "v3")
+        self.assertEqual(PROMPT_VERSIONS["repair"], "v3")
         workflow = QuestionWorkflow(Mock(), llm=Mock(config=LLMConfig()), api_factory=lambda: None)
         self.assertIs(workflow.settings["review_policy"], DEFAULT_REVIEW_POLICY)
+
+    def test_spanish_rules_prompts_keep_the_original_question(self):
+        draft = AnswerDraft(can_answer=False, claims=[], assumptions=[])
+        nodes, llm, _ = self.nodes([draft, draft], prompt_version="v3", local_repair=True,
+                                   compact_cards=True, balanced_context=True)
+        state = initial_state("¿Aplico el daño?", llm)
+        state.update(decision=RouteDecision(language="es", english_query="Does it deal damage?", route="rules",
+                                            card_names=[], clarification=""),
+                     resolved_question="Does it deal damage?",
+                     context=[SearchResult("r", "rule", "Rule", "First strike changes timing.", 1, 1, "test")],
+                     draft=AnswerDraft(can_answer=True, claims=[Claim(text="Yes.", source_ids=["r"])], assumptions=[]),
+                     validation_error=None,
+                     review=EvidenceReview(action="repair", supported=False, unsupported_claims=["Bad citation."],
+                                           missing_information=[], followup_queries=[]))
+        state.update(nodes.validate(state))
+        nodes.generate(state)
+        nodes.repair(state)
+        prompts = [call.args[0] for call in llm.generate.call_args_list]
+        self.assertEqual(len(prompts), 2)
+        for prompt in prompts:
+            self.assertIn("¿Aplico el daño?", prompt)
+            self.assertIn("Does it deal damage?", prompt)
+            self.assertIn("Spanish is required", prompt)
+        self.assertIn("even when the draft is English", prompts[1])
     def nodes(self, outputs, **policy):
         llm=Mock(config=LLMConfig())
         llm.generate.side_effect=outputs
